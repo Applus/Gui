@@ -1,0 +1,164 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<link rel="stylesheet" type="text/css" href="css/sidenavigationpanel.css">
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript">
+
+
+var place;
+		
+		var root;
+		var num_children;
+		var list ='';
+		var num_root;
+
+		place = GetURLParameter("place", sessionStorage.getItem('url'));
+		//construct the url for the ajax request
+	
+		
+		var url="";
+		
+		if(place=="verres"){
+			url = "menustructure/treeClimVerres.json";
+		}
+		else if(place=="mirafiori"){
+			url = "";
+		}
+
+		jQuery.ajax({
+			url: url,
+			type : "GET",
+			dataType : "json",
+			success: function(data){
+				root = data;
+				num_root = root.length;
+
+
+			},
+			error: function(xhr, ajaxOptions, thrownErrorxhr){
+				console.log("menu error");
+				console.log(xhr.status);
+				console.log(thrownErrorxhr.message);
+			},
+			complete: function(qXHR, textStatus){
+				
+				//lo devo ripetere per tante volte quanti sono gli edifici, cioè tutte le radici del json
+				
+				for(var i = 0; i < num_root; i++){
+					list = list + "<ul class='navigazione'>";
+				
+					var stringaSensori = getStringaSensori(root[i]);
+					if(stringaSensori==""){
+						list = list + "<li class='livello1'> <span>" + root[i].name + "</span>";
+
+					}else{						
+						list = list + "<li class='livello1'> <span>" + root[i].name + "</span>"+"<a url='?&name="+root[i].name+stringaSensori+"&place="+place+"'><img class='view' src='img/lente.png'/></a>";
+
+					}
+					
+					num_children = root[i].children.length;
+				
+					if(num_children>0){
+						list = writeChildren(root[i], list);
+					}
+					else{
+						list = list + "</ul>";
+						$("#menu").html(list);
+					} 
+				}
+			}
+		});
+		
+
+var total_list='';
+var level = 1;
+function writeChildren (root, list){
+	
+	level++;
+	console.log("i'm checking "+ root.name);
+		var num  = root.children.length;
+		
+			
+			list = list.concat("<ul class='navigazione'>");
+			
+			
+			for(var i = 0; i < num; i++){
+
+				list = list.concat("<li class='livello"+level+"'> <span>");
+				var stringaSensori = getStringaSensori(root.children[i]);
+				if(stringaSensori==""){
+					list =list.concat(root.children[i].name+ " </span>");
+				}
+				else{
+					list =list.concat(root.children[i].name + " </span> <a url='?&name="+root.children[i].name+stringaSensori+"&place="+place+"'><img class='view' src='img/lente.png'/></a>");
+				}
+				
+
+				
+				if(typeof root.children[i].children === 'undefined'){
+			
+					list = list.concat("</li>");
+					
+					total_list = total_list.concat(list);
+					
+					list='';
+					
+					
+				}
+				else{
+				
+					total_list = total_list.concat(list);
+					list='';
+					writeChildren(root.children[i], list);
+					
+				}
+
+				if(i==num-1){
+					
+					list = list.concat("</ul>");
+					
+					
+					total_list = total_list.concat(list);
+					level--;
+					list=""; 
+				}
+
+			}
+			$("#menu").html(total_list);
+}
+
+
+function getStringaSensori(root){
+	console.log(root);
+	var stringaSensori="";
+	var count_e=0;
+	var count_p=0;
+
+	if(typeof root.drains === 'undefined'){
+		return stringaSensori;
+	}
+	else{
+		if(root.drains.length>0){
+			
+			for(var i = 0 ; i < root.drains.length ; i++){
+				stringaSensori = stringaSensori + "&"+root.drains[i].description+root.drains[i].type+"="+root.drains[i].id;
+			}
+			
+		}
+	
+		return stringaSensori;		
+	}
+}
+
+</script>
+			
+<div id="menu"></div>

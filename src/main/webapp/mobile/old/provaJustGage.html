@@ -1,0 +1,128 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+<title>Applus Energie Mobile</title>
+<link rel="stylesheet" href="css/custom-theme.css" />
+<!--  jquery and jquerymobile -->
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile.structure-1.3.0.min.css" /> 
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
+<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script> 
+
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="css/style.css">	
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+
+<!-- moment -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+<!-- just gauge -->
+<script src="js/raphael.2.1.0.min.js"></script>
+<script src="js/justgage.1.0.1.min.js"></script>
+
+<!-- angular js -->
+<script src="js/angular.min.js"></script>
+
+
+</head>
+<body>
+<!-- pagina con il grafico istantaneo del totale-->
+	<div id="istantaneo_totale" data-role="page" data-theme="a">
+		<div data-role="header">
+		<a href="#" class="ui-btn-left ui-btn ui-btn-icon-left ui-btn-corner-all ui-shadow ui-btn-up-a" data-rel="back" data-icon="arrow-l" data-theme="a"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Back</span><span class="ui-icon ui-icon-arrow-l ui-icon-shadow"></span></span></a>
+			<div class="data_ora">
+				<span class="data" id="data"></span>
+				<span class="ora" id="ora"></span>
+			</div>
+			
+			<p class="nome_aula"> Totale Edificio </p>
+		</div>
+		<div id="graficoistantaneo" data-role="content">
+
+<script >
+	var name, unit, value;
+	var query_ist;
+	var el;
+	
+	var g;
+	$("#istantaneo_totale").on('pageshow' , function(){
+	query_ist = query_db + "drain-tpe?limit=1&reversed=true";
+		
+		console.log(query_ist);
+		//variabili per i dati del grafico
+		//chiamata ajax per il dato
+		$.ajax({
+			url : query_ist,
+			dataType : "jsonp",
+			error : function(x, t, r) {
+				console.log(x.response.message); 
+			},
+			success : function(data) {
+				console.log("success");
+				name = data.name;
+				value = data.measures[0].value/1000;
+				$(document).trigger('energy');
+			},
+			complete : function(qXHR, textStatus) {
+				g = new JustGage({
+				    id: "gauge_tot", 
+				    value: value.toFixed(2), 
+				    valueFontColor: 'white',
+				    min: 1,
+				    max: 4,
+				    title: "Consumo istantaneo",
+				    titleFontColor: "white",
+				    label: "kW"
+				  }); 
+				setInterval(function(){
+					$.ajax({
+						url : query_ist,
+						dataType : "jsonp",
+						error : function(x, t, r) {
+							console.log(x.response.message); 
+						},
+						success : function(data) {
+							console.log("success");
+							name = data.name;
+							value = data.measures[0].value/1000;
+							$(document).trigger('energy');
+						},
+						complete : function(qXHR, textStatus) {
+							g.refresh(value.toFixed(2));
+						}
+					//fine chiamata ajax
+					});
+				}, 10000);
+			}
+		//fine chiamata ajax
+		});
+		
+	});
+ 
+</script>
+<div class="grafico_istantaneo">
+	
+	<div id="gauge_tot" ></div>
+</div>
+		
+		</div>
+		
+	</div>
+</body>

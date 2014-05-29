@@ -1,0 +1,91 @@
+[ { "children" : [ ],
+    "description" : "Contatore Generale",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "m2-p3",
+          "name" : "m2-p3",
+          "total" : true,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m2-p3",
+          "name" : "m2-p3",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m2-p2",
+          "name" : "m2-p2",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m2-p1",
+          "name" : "m2-p1",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m1-p1",
+          "name" : "m1-p1",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m1-p2",
+          "name" : "m1-p2",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m1-p3",
+          "name" : "m1-p3",
+          "total" : false,
+          "type" : "ActiveEnergy"
+        },
+        { "description" : "",
+          "id" : "m2-p3",
+          "name" : "m2-p3",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "m2-p2",
+          "name" : "m2-p2",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "m2-p1",
+          "name" : "m2-p1",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "m1-p3",
+          "name" : "m1-p3",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "m1-p2",
+          "name" : "m1-p2",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "m1-p1",
+          "name" : "m1-p1",
+          "total" : false,
+          "type" : "ActivePower"
+        },
+        { "description" : "",
+          "id" : "drain-tpe",
+          "name" : "drain-tpe",
+          "total" : true,
+          "type" : "ActivePower"
+        }
+      ],
+    "id" : "TE",
+    "name" : "Totale Edificio"
+  } ]

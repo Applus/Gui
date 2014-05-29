@@ -1,0 +1,38 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+
+      //gestione bottoni
+    	$("#graficosensori").on('click', function(e){
+    		e.preventDefault();
+    		$('#interactive_graph_container').load('m.graficoSensori.html', function(){
+    			$(this).trigger('create');
+    		});
+    	});
+    	
+    	$("#graficostorico").on('click', function(e){
+    		e.preventDefault();
+    		$('#interactive_graph_container').load('m.graficoStorico.html', function(){
+    			$(this).trigger('create');
+    		});
+    	});
+
+
+</script>	
+<div id="interactive_graph_container"></div>
+<div id="menugrafici">
+	<ul data-role="listview" data-inset="true">
+			<li id="graficosensori" data-icon="false"><a data-theme="a" > Power per Sensor</a></li>
+			<li id="graficostorico" data-icon="false"><a data-theme="a" > Daily Consumption </a> </li>
+	</ul>
+</div>
+		

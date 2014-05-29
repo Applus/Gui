@@ -1,0 +1,176 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<div class="palinsesto">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/moment.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/charts.theme.js"></script>
+
+<script type="text/javascript">
+	var query_week;
+	var week_chart;
+	var last_week_values = new Array();
+
+	var day_begin_last_week;
+	var month_begin_last_week;
+	var year_begin_last_week;
+
+	var day_end_last_week;
+	var month_end_last_week;
+	var year_end_last_week;
+
+	var current_date;
+	var count;
+
+	$(document)
+			.ready(
+					function() {
+						var drain = "MIR_ELE_STU_P";
+						//voglio prendere la data, mettere i 7 giorni precedenti
+						
+						//prendo data odierna con moment
+						var today = moment();
+						//creo un vettore con i sette giorni precedenti ad oggi
+						var last_week = new Array(7);
+						var j = 1;
+
+						for ( var i = 6; i >= 0; i--) {
+							//sottraggo da today le i 7 giorni precedenti
+							var date = today.subtract('days', 1);
+							var dateString = date.date()+"/"+(date.month()+1); //pi� uno eprch� i mesi iniziano da zero
+							console.log("last week � " +dateString);
+							//questo mi serve comunque per le categories
+							last_week[i] = dateString;
+							
+							//qui mi servono data di inizio e fine della settimana per la query
+							if (j == 1) {
+								//memorizzo giorno mese e anno dell'ultimo giorno degli ultimi sette giorno
+								//cio� ieri
+								day_end_last_week = date.date();
+								month_end_last_week = date.month() + 1;
+								year_end_last_week = date.year();
+								console.log("j==1 " +day_end_last_week + " " + month_end_last_week + " " + year_end_last_week);
+							}
+							if (j == 7) {
+								//memorizzo giorno, mese e anno dell'inizio degli ultimi 7 giorni
+								day_begin_last_week = date.date();
+								month_begin_last_week = date.month() + 1;
+								year_begin_last_week = date.year();
+								console.log("j==7 " +day_begin_last_week + " " + month_begin_last_week + " " + year_begin_last_week);
+							}
+							j++;
+
+						}
+
+						var mirafiori_query_dwh = "https://mirafiori.applus.polito.it/JeerpDa/bi/mdx?q=";
+						query_week = build_interval_query_energy(mirafiori_query_dwh, drain, year_begin_last_week,month_begin_last_week, day_begin_last_week, null, null, year_end_last_week,month_end_last_week, day_end_last_week, null, null, false);
+						
+						console.log("query week " + query_week);
+						//chiamata ajax per il file json di esempio dei consumi dell'ultima settimana
+						$.ajax({
+							url : query_week,
+							type : "GET",
+							dataType : "jsonp",
+							success : function(data) {
+								last_week_values = parse_simple_data(data, 1000);								
+							},
+							error : function(xhr, ajaxOptions, thrownErrorxhr) {
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+								var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+								$("#week_chart").append(scritta);
+							},
+							complete : function(qXHR, textStatus) {
+								
+								if(last_week_values.length>0){
+									var point_interval = 24 * 3600 * 1000; //one day 
+									week_chart = new Highcharts.Chart({
+										chart : {
+											renderTo : 'week_chart',
+											type : 'column'
+										},
+										colors : [ '#FBAE17' ],
+										legend : {
+											enabled : false
+										},
+										title : {
+											text : null
+										},
+										xAxis : {
+											type: 'datetime',
+							                title: {
+							                    text: null
+							                }
+										},
+										yAxis : {
+											labels : {
+												enabled:false
+											},
+											title : {
+												text : null
+											},
+											min : 0
+										},
+										series : [ {
+											name : 'Energia',
+											data : last_week_values,
+											pointStart: Date.UTC(year_begin_last_week , month_begin_last_week-1, day_begin_last_week),
+									        pointInterval: point_interval
+										} ]
+
+									});
+								}
+								else{
+									var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+									$("#week_chart").append(scritta);
+								}
+								
+							}
+						});
+						
+						//ogni tot controllo se è cambiato il giorno
+						//ogni 20 min
+						setInterval(function(){
+							//vedo se è passato il giorno
+							current_date = moment();
+							var diff = current_date.date()-(today.add('days',7)).date();
+							console.log(current_date.date());
+							console.log(today.date());
+							console.log(diff);
+							if(diff!=0){
+								console.log('è cambiato il giorno!');
+								//posso ricaricare la pagina, tanto avviene di notte
+								window.location.reload(true);
+							}
+							
+							today = today.subtract('days',7)
+							
+							
+						}, 20*60*1000)
+
+					});
+</script>
+
+
+
+<div id="titolo">  Aula Studio di Mirafiori </div>
+<div id="sottotitolo">  Consumo Energetico Giornaliero (kW&middot;h) </div>
+<img class="logo" src="img/logoapplus.png">
+<div id="grafico_settimana">
+	<div id="week_chart"></div>
+		<div class="footer"> www.applus-energie.org</div>
+</div>
+</div>
+
+

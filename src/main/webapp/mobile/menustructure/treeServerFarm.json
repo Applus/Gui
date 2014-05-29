@@ -1,0 +1,5 @@
+{ "children": [],
+  "locationDB" : "[All Locations]",
+  "name" : "Totale Edificio",
+  "sensors" :[ { "name" : "m1-p1|m1-p2|m1-p3|m2-p1|m2-p2|m2-p3"}]
+}

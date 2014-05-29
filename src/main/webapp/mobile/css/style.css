@@ -1,0 +1,166 @@
+/*******************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+*******************************************************************************/
+
+/* font */
+@font-face{
+	font-family: 'Roboto';
+   	src: url('font/Roboto-Regular.ttf');
+}
+
+body{
+	font-family: 'Roboto', sans-serif;
+	background-color: black;
+	color:white;
+	font-size:1em;
+}
+
+/*header*/
+
+.sottotitolo{
+	font-size: 12px;
+}
+
+
+
+.data_ora{
+	color: white; 
+	width:100%; 
+	font-size: large;
+	float:right;
+	clear:both;
+} 
+
+#data{
+	float: right;
+	padding:5px;
+	
+}  
+#ora{
+	float: right;
+	padding:5px;
+	clear:both;
+}
+
+.nome_aula{
+	color: white; 
+	width:100%;
+	text-align:center;
+	padding-left:20px;
+	font-size: large;
+}
+
+
+
+
+/* ecoconsiglio*/
+#eco_consigli{
+		/* background-color:#2D2D2D;  */
+		border-radius: 5px;
+		color: white; 
+		margin-top:5px;
+		width:90%;
+		min-height:90%;
+		margin:auto;
+	}
+	#immagine{
+		width : 30px;
+		float: left;
+	}
+	#ecoconsiglio{
+		float: right;
+	}
+	#titolo_consiglio{
+		text-align: center;
+		clear: both;
+	}
+	.testo_consiglio{
+		float:right;
+		padding:3px;
+	}
+/* gauge con consumo istantaneo */
+.grafico_istantaneo, .grafico_istantaneo_aula {
+	background-color: #2D2D2D;
+	border-radius: 5px;
+	color: white;
+	margin-top: 5px;
+	width:70%; 
+
+	text-align: center;
+	margin:auto;
+}
+.max_min{
+	width: 100%;
+	margin-top:30px;
+}
+
+.max{
+	float:right;
+	width:45%;
+	text-align: center;
+}
+
+.max > img, .min > img {
+	width:18%;
+	vertical-align: middle;
+}
+.min{
+	float:left;
+	width:45%;
+	text-align: center;
+}
+
+
+#gauge, #gauge_aula {
+	/* width: 300px;
+	height: 300px; */
+}
+/* grafico orario */
+.grafico_centrale {
+	background-color: #2D2D2D;
+	border-radius: 5px;
+	color: white;
+	margin-top: 5px;
+	width: 90%;
+	min-height:90%;
+	margin:auto;
+}
+
+#chart, #chart_aula {
+	width: 90%;
+	min-height:90%;
+}
+
+/* grafico settimanale */
+.grafico_settimana{
+		background-color:#2D2D2D; 
+		border-radius: 5px;
+		color: white; 
+		margin-top:5px;
+		width:90%;
+		min-height:90%;
+		margin:auto;
+
+	}
+	#week_chart, #week_chart_aula {
+		width:90%;
+		min-height:90%;
+	}
+
+#warning-message { display: none; }
+    @media only screen and (orientation:portrait){
+		#default,#choose, #verres, #mirafiori, #verres_clim, #mirafiori_clim { display:none; }
+        #warning-message { display:block; }
+    }
+    @media only screen and (orientation:landscape){
+        #warning-message { display:none; }
+    }
+
+

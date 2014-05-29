@@ -1,0 +1,270 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!-- script per grafico consumo istantaneo 
+	anche qui potrei avere dei parametri in ingresso che mi identificano quale aula
+	(o edificio) sto visualizzando,
+	anche qui lo parso con il javascript
+	se � totale -> scrivo la query sul totale
+	se � nome aula ->scrivo la query su nome aula
+	
+-->
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+				var name, unit, value;
+				var query_ist;
+				var query_last_hour;
+				var el;
+				var gauge;
+				var min;
+				var max;
+				var count;
+
+				var meas;
+
+				var last_hour = new Array();
+
+				var factor = 1;
+
+				var place = GetURLParameter('place');
+
+				//prendo la larghezza del pixel in div
+				var w1 = $('.grafico_istantaneo').width();
+				$('#gauge').css({
+					width : w1,
+					height : w1 / 1.25
+				});
+
+				//prendo dall'url il parametro totalpower
+
+				var totalpower = GetURLParameter('totalpower');
+				
+				if(place=="verres"){
+					query_ist = instant_query_ver + totalpower;
+					query_last_hour = minute_query_ver + totalpower;
+				}
+				if(place=="mirafiori"){
+					query_ist = instant_query_mir + totalpower;
+					query_last_hour = minute_query_mir + totalpower;
+				}
+
+				//chiamata ajax per il dato
+				$.ajax({
+					url : query_ist,
+					dataType : "jsonp",
+					error : function(x, t, r) {
+						console.log(x.response.message);
+						$("#gauge").append("ND");
+					},
+					success : function(data) {
+							name = data.drain;
+							meas = data.value;
+						if (typeof meas === 'undefined') {
+							$("#gauge").append("ND");
+						} else {
+								value = data.value;
+								value = value * factor;
+						}
+					},
+					complete : function(qXHR, textStatus) {
+						var label = "W";
+						if (typeof value != 'undefined') {
+							if (value > 10000) {
+								value = value / 1000;
+								value = value.toFixed(2);
+								label = "kW";
+							} else {
+								value = value.toFixed(0);
+							}
+
+							var newvalue = parseFloat(value) + (parseFloat(value) / 3);
+							max = Math.pow(10, (Math.ceil(log10(newvalue))));
+
+							//se il div che contiene il grafico ha gi� il contenuto
+							if ($("#gauge").text().length > 0) {
+								//lo svuoto
+								$("#gauge").empty();
+							}
+
+							gauge = new JustGage({
+								id : "gauge",
+								value : value,
+								valueFontColor : 'white',
+								min : 0,
+								max : max,
+								title : "Current consumption",
+								titleFontColor : "white",
+								label : label
+							});
+						} else {
+							$("#gauge").empty();
+							$("#gauge").append("ND");
+						}
+
+						setInterval(function() {
+							if(place=="verres"){
+								query_ist = instant_query_ver + totalpower;
+							}
+							if(place=="mirafiori"){
+								query_ist = instant_query_mir + totalpower;
+							}
+							$.ajax({
+								url : query_ist,
+								dataType : "jsonp",
+								error : function(x, t, r) {
+									console.log(x.response.message);
+								},
+								success : function(data) {
+										name= data.drain;
+										meas = data.value;
+										if (typeof meas === 'undefined') {
+											$("#gauge").append("ND");
+										} else {
+												value = data.value;
+												value = value * factor;
+										}
+								},
+								complete : function(qXHR, textStatus) {
+									var label = "W";
+
+									if (typeof value != 'undefined') {
+										if (value > 10000) {
+											value = (value / 1000).toFixed(2);
+											label = "kW";
+										} else {
+											value = value.toFixed(0);
+										}
+										if ($("#gauge").text() == "ND") {
+											
+											var newvalue = parseFloat(value) + (parseFloat(value) / 3);
+											max = Math.pow(10, (Math.ceil(log10(newvalue))));
+
+											$("#gauge").empty();
+											gauge = new JustGage({
+												id : "gauge",
+												value : value,
+												valueFontColor : 'white',
+												min : 0,
+												max : max,
+												title : "Current Consumption",
+												titleFontColor : "white",
+												label : label
+											});
+										} else {
+											//devo solo aggiornare la value
+											gauge.refresh(value);
+										}
+
+									} else {
+										$("#gauge").empty();
+										$("#gauge").append("ND");
+									}
+
+								}
+							//fine chiamata ajax
+							});
+						}, 10000);
+
+					}
+				//fine chiamata ajax
+				});
+
+				//faccio chiamata ajax per avere i valori dell'ultima ora (la rifaccio ogni ora)
+				console.log(query_last_hour);
+				$.ajax({
+					url : query_last_hour,
+					dataType : "jsonp",
+					error : function(x, t, r) {
+						console.log(x.response.message);
+					},
+					success : function(data) {
+						//memorizzo nel vettori i dati
+							count = data.measures.length;
+
+						for (var i = 0; i < count; i++) {
+							last_hour[i] = data.measures[i].value.toFixed(0);
+						}
+
+					},
+					complete : function(qXHR, textStatus) {
+						//ordino
+						last_hour.sort(function(a, b) {
+							return a - b;
+						});
+						var min = last_hour[0];
+						$("#span_min").html(min);
+						var max = last_hour[count - 1];
+						$("#span_max").html(max);
+
+						setInterval(function() {
+							if(place=="verres"){
+								query_last_hour = minute_query_ver + totalpower;
+							}
+							if(place=="mirafiori"){
+								query_last_hour = minute_query_mir + totalpower;
+							}
+							
+							$.ajax({
+								url : query_last_hour,
+								dataType : "jsonp",
+								error : function(x, t, r) {
+									console.log(x.response.message);
+								},
+								success : function(data) {
+									console.log("success query ultima ora");
+									//memorizzo nel vettori i dati
+										count = data.measures.length;
+
+									for (var i = 0; i < count; i++) {
+										last_hour[i] = data.measures[i].value.toFixed(0);
+									}
+								},
+								complete : function(qXHR, textStatus) {
+									last_hour.sort(function(a, b) {
+										return a - b;
+									});
+									var min = last_hour[0];
+
+									$("#span_min").html(min);
+									var max = last_hour[count - 1];
+
+									$("#span_max").html(max);
+
+								}
+							//fine chiamata ajax
+							});
+						}, 60 * 60 * 1000);
+					}
+				//fine chiamata ajax
+				});
+
+			});
+</script>
+<div class="grafico_istantaneo">
+	<div id="gauge"></div>
+
+	<div id="max_min">
+		<div id="min">
+
+			<img src="img/freccia_giu.png" /> <span>MIN: </span> <span
+				id="span_min"> N/A </span> W
+
+		</div>
+		<div id="max">
+
+			<img src="img/freccia_su.png" /> <span>MAX: </span> <span
+				id="span_max"> N/A </span> W
+
+		</div>
+
+	</div>
+</div>

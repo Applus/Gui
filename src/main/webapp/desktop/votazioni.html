@@ -1,0 +1,340 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width">
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+<script type="text/javascript" src="js/gauge.min.js"></script>
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/new_general.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/style_clim.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		
+				var place;
+				var localurl;
+				
+				place= GetURLParameter('place');
+				
+				if(place=="mirafiori"){
+					localurl=confort_mir;
+				}
+				else{
+					localurl=confort_ver;
+				}
+		
+				$('button').button();
+				$("#back").click(function() {
+					window.history.back();
+				});
+				
+				var opts = {
+						  lines: 200, // The number of lines to draw
+						  angle: 0.02, // The length of each line
+						  lineWidth: 0.30, // The line thickness
+						  pointer: {
+						    length: 0.69, // The radius of the inner circle
+						    strokeWidth: 0.053, // The rotation offset
+						    color: '#000000' // Fill color
+						  },
+						  limitMax: 'true',   // If true, the pointer will not go past the end of the gauge
+						  strokeColor: '#E0E0E0',   // to see which ones work best for you
+						  generateGradient: true,
+						  percentColors: [[0.0, "#42EAFF"], [0.50, "#FFFF00"], [1.0, "#FF0000"]]
+						};
+				
+				var opts_nd = {
+						  lines: 200, // The number of lines to draw
+						  angle: 0.02, // The length of each line
+						  lineWidth: 0.30, // The line thickness
+						  pointer: {
+						    length: 0.69, // The radius of the inner circle
+						    strokeWidth: 0.053, // The rotation offset
+						    color: '#000000' // Fill color
+						  },
+						  limitMax: 'true',   // If true, the pointer will not go past the end of the gauge
+						  strokeColor: '#E0E0E0',   // to see which ones work best for you
+						  generateGradient: true,
+						  percentColors: [[0.0, "#FF6F00"], [0.50, "#C4FF00"], [1.0, "#42FFF7"]]
+						};
+				
+				var opts_rd = {
+						  lines: 1000, // The number of lines to draw
+						  angle: 0.02, // The length of each line
+						  lineWidth: 0.30, // The line thickness
+						  pointer: {
+						    length: 0.69, // The radius of the inner circle
+						    strokeWidth: 0.053, // The rotation offset
+						    color: '#000000' // Fill color
+						  },
+						  limitMax: 'true',   // If true, the pointer will not go past the end of the gauge
+						  strokeColor: '#E0E0E0',   // to see which ones work best for you
+						  generateGradient: true,
+						  percentColors: [[0.0, "#974E0A"], [0.50, "#A6FF61"], [1.0, "#61FFF8"]]
+						};
+				
+				var target_temp = document.getElementById('temp'); // your canvas element
+				var gauge_temp = new Gauge(target_temp).setOptions(opts); // create gauge!
+				gauge_temp.minValue = -3;
+				gauge_temp.maxValue = 3; // set max gauge value
+				gauge_temp.animationSpeed = 32; // set animation speed (32 is default value)
+					
+				var target_hum = document.getElementById('hum'); // your canvas element
+				var gauge_hum = new Gauge(target_hum).setOptions(opts_nd); // create gauge!
+				gauge_hum.minValue = -3;
+				gauge_hum.maxValue = 3; // set max gauge value
+				gauge_hum.animationSpeed = 32; // set animation speed (32 is default value)
+						
+				var target_air = document.getElementById('air'); // your canvas element
+				var gauge_air = new Gauge(target_air).setOptions(opts_rd); // create gauge!
+				gauge_air.minValue = -3;
+				gauge_air.maxValue = 3; // set max gauge value
+				gauge_air.animationSpeed = 32; // set animation speed (32 is default value)
+				
+				window.onresize = function() {
+					var w1 = $('#pan_small').width();
+					var w2 = $('.right_container_inside_up_plusV').width();
+					resize(w1,w2);
+					}
+				
+				//gauge
+					var w1 = $('#pan_small').width();
+					var w2 = $('.right_container_inside_up_plusV').width();
+					resize(w1,w2);
+
+				//prendo il nome del locale che sto visualizzando
+				var down_name = GetURLParameter('name');
+				console.log('name = ' + down_name);
+				if (name == 'Gallery') {
+					$('.left_bottom_container').addClass("invisible");
+				}
+				else{
+					$('.left_bottom_container').removeClass("invisible");
+				}
+
+				if (name == 'Polytechnic%20Office' || name == 'Polytechnic%20Meeting%20Room') {
+					$("#content-pannello").addClass('invisible');
+				} else {
+					$("#content-pannello").removeClass('invisible');
+				}
+				
+				//richiesta ajax per le etichette
+				var tot_t=new Array(), tot_h=new Array(), tot_a=new Array(); 
+				up_name=down_name.toUpperCase();
+				tot_t=get_etichette(up_name,"TEMP",localurl);
+				tot_h=get_etichette(up_name,"HUM",localurl);
+				tot_a=get_etichette(up_name,"AIR",localurl);
+				
+				//slider
+				$(function() {
+				    $( "#slider_temp" ).slider({
+				      value: 3,
+				      min: 0,
+				      max: 6,
+				      step: 1,
+				      slide: function( event, ui ) {
+				    	  $("#opinion").val(tot_t[ui.value][1]);
+				      }
+				    });
+				  });
+				
+				$(function() {
+				    $( "#slider_hum" ).slider({
+				    	value:3,
+					    min: 0,
+					    max: 6,
+					    step: 1,
+				      slide: function( event, ui ) {
+				    	  $("#opinion_h").val(tot_h[ui.value][1]);
+				      }
+				    });
+				  });
+				
+				$(function() {
+				    $( "#slider_air" ).slider({
+				    	value:3,
+					    min: 0,
+					    max: 6,
+				     step: 1,
+				      slide: function( event, ui ) {
+				    	  $("#opinion_a").val(tot_a[ui.value][1]);
+				      }
+				    });
+				  });
+				
+				//setta il valore dei gauge
+				do_gauge(up_name,"TEMP",opts,gauge_temp,localurl);
+				setInterval(function(){do_gauge(up_name,"TEMP",opts,gauge_temp,localurl);},50000);
+				do_gauge(up_name,"HUM",opts_nd,gauge_hum,localurl);
+				setInterval(function(){do_gauge(up_name,"HUM",opts_nd,gauge_hum,localurl);},50000);
+				do_gauge(up_name,"AIR",opts_rd,gauge_air,localurl);
+				setInterval(function(){do_gauge(up_name,"AIR",opts_rd,gauge_air,localurl);},50000);
+				
+				$("#send").click(function() {
+				     var data_t={ "value": $('#slider_temp').slider('value') -3 };
+				     var data_h={ "value": $('#slider_hum').slider('value') -3 };
+				     var data_a={ "value": $('#slider_air').slider('value') -3 };
+				     send(up_name,"TEMP",data_t,localurl);
+				     send(up_name,"HUM",data_h,localurl);
+				     send(up_name,"AIR",data_a,localurl);
+				  
+				     window.location.href = window.location.href;
+				     
+				    });
+			});
+	
+</script>
+
+<title>Applus Energie</title>
+</head>
+<body>
+
+
+	<!-- racchiudo tutto in un div application -->
+
+	<div class="application">
+
+		<div class="intestazione">
+			<!-- aggiungo il bottone per aprire il pannello di navigazione  -->
+			<button id="back">Back</button>
+			<div ng-include src="'nomeAula.html'"></div>
+			<div ng-include src="'data.html'"></div>
+		</div>
+
+		<div class="left_container_big_up_plus">
+			<div id="title_votazioni"> Indicator Evaluations ( last hour )</div>
+			<div class="half_cont"> 
+				<div id="pan_left">
+					<img class="logo_votazioni" src="img/logo-temp.jpg" alt="logo_temp" />
+					<div id="pan_small">
+						<div id="subtitle"> Temperature</div>
+						<canvas id="temp"></canvas>
+						<div id="gauge_description_TEMP">
+							<div id="gauge_left">COLD</div><div id="gauge_right">HOT</div>
+						</div>
+					</div>
+				</div>
+				<div id="pan_right">
+					<img class="logo_votazioni" src="img/logo-umi.jpg" alt="logo_umi" />
+					<div id="pan_small">
+						<div id="subtitle"> Relative Humidity</div>
+						<canvas id="hum"></canvas>
+						<div id="gauge_description_HUM">
+							<div id="gauge_left">DRY</div><div id="gauge_right">WET</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="half_cont"> 
+				<div id="pan_center" style="width:27%; vertical-align:middle;">
+				<div id="pippo" style="width:20%; height:30%; float:left;"><img class="logo_votazioni" src="img/logo-co2.jpg" alt="logo_co2" style="margin-top:40px; width:100%;"/></div>
+					<div id="pan_small" style="float:right;">
+						<div id="subtitle" style="padding-left:20px;"> Air quality</div>
+						<canvas id="air"></canvas>
+						<div id="gauge_description_AIR" style="padding-left:10px;">
+							<div id="gauge_left">FOUL</div><div id="gauge_right">FRESH</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+
+		<div class="right_container_small_up_plus">
+
+			<div class="right_container_inside_up_plusV">
+
+				<div class="sottotitolo"> Temperature index </div></br>
+					<div class="content_img_votazioni"> <img class="logo" src="img/logo-temp.jpg" alt="logo_temp" /> </div>
+
+					<div class="value_votazioni">
+						<p>
+						  <input type="text" id="opinion" style="border: 0; color: #f6931f; font-weight: bold; font-size:16px; text-align: center; background-color:#2D2D2D;" />
+						</p>
+						 
+						<div id="slider_temp"></div>
+						<div id="gauge_left">COLD</div><div id="gauge_right">HOT</div>
+					</div>
+
+			</div>
+			<div class="right_container_inside_middle_plusV">
+
+				<div class="sottotitolo"> Relative Humidity index</div></br>
+					<div class="content_img_votazioni"> <img class="logo" src="img/logo-umi.jpg" alt="logo_umi" /> </div>
+
+					<div class="value_votazioni"> 
+							<p>
+							  <input type="text" id="opinion_h" style="border: 0; color: #38A2CB; font-weight: bold; font-size:16px; text-align: center; background-color:#2D2D2D;" />
+							</p>
+							
+							<div id="slider_hum"></div>
+							<div id="gauge_left">DRY</div><div id="gauge_right">WET</div>
+					</div>
+			</div>
+
+
+				<div class="right_container_inside_bottom_plusV">
+					<div class="sottotitolo">Air quality index</div></br>
+						<div class="content_img_votazioni"> <img class="logo" src="img/logo-co2.jpg" alt="logo_co2" />
+						</div>
+
+						<div class="value_votazioni"> 
+							<p>
+							  <input type="text" id="opinion_a" style="border: 0; color: #9FD374; font-weight: bold; font-size:16px; text-align: center; background-color:#2D2D2D;" />
+							</p>
+							
+							<div id="slider_air"></div>
+							<div id="gauge_left">FOUL</div><div id="gauge_right">FRESH</div>
+						</div>
+				</div>
+				
+				<button id="send">Send Opinions</button>
+
+			</div>
+
+		</div>
+
+</body>
+
+
+<!-- script jquery -->
+
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+<!-- script highcharts -->
+<script type="text/javascript" src="js/highcharts.js"></script>
+<!-- script highstock -->
+<script type="text/javascript" src="js/highstock.js"></script>
+<!-- script highcharts more -->
+<script type="text/javascript" src="js/highcharts-more.js"></script>
+<!--  Custom theme -->
+<script type="text/javascript" src="js/chart.theme.js"></script>
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+</html>

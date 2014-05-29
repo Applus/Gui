@@ -1,0 +1,70 @@
+<!-- bottoni con le scelte del grafico, mi porto avanti il parametro -->
+<div  id="menugrafici" data-role="page" data-theme="a">
+
+
+<script type="text/javascript">
+$(document).on('pageinit', function(){
+	pickdate();
+	setInterval(pickdate, 2000);
+	
+	//prendo il parametro passato nel link della pagina
+	//in bae a questo scelgo il titolo nell'header
+	$("#menugrafici").bind("pageshow", function(event){
+		console.log("page sohow");
+		var url = $.url(document.location);
+        var arg1 = url.param("param");
+        console.log(arg1);
+        if(arg1=="totale"){
+        	$("#nome").html("Totale Edificio");
+        }
+        else if(arg1=="aula"){
+        	$("#nome").html("Aula Informatica");
+        }
+        
+      //gestione bottoni
+    	$("#istantaneo").on('vclick', function(){
+    		$.mobile.changePage('m.graficoistantaneo.html', {data:{param:arg1}});
+    	});
+    	
+    	$("#oggi").on('vclick', function(){
+    		$.mobile.changePage('m.graficoCentrale.html', {data:{param:arg1}});
+    	});
+    	
+    	$("#settimana").on('vclick', function(){
+    		$.mobile.changePage('m.graficosettimana.html', {data:{param:arg1}});
+    	});
+    	
+    	$("#eco").on('vclick', function(){
+    		$.mobile.changePage('m.ecoConsigli.html');
+    	})
+	});
+	
+});
+
+function pickdate() {
+	var now = moment();
+	now.lang('it');
+	$(".data").html(now.format('DD MMMM YYYY'));
+	$(".ora").html(now.format('HH:mm'));
+}
+</script>	
+
+
+	<div data-role="header">
+		<a href="" class="ui-btn-left ui-btn ui-btn-icon-left ui-btn-corner-all ui-shadow ui-btn-up-a" data-rel="back" data-icon="arrow-l" data-theme="a"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Back</span><span class="ui-icon ui-icon-arrow-l ui-icon-shadow"></span></span></a>
+			<div class="data_ora">
+				<span class="data" id="data"></span>
+				<span class="ora" id="ora"></span>
+			</div>
+			<p id="nome" class="nome_aula">  </p>
+		</div> 
+
+		<div id="content" data-role="content">
+			<a href="#" data-role="button" data-theme="a" id="istantaneo"> Istantaneo </a>
+			<a href="#" data-role="button" data-theme="a" id="oggi"> Oggi </a> 
+			<a href="#" data-role="button" data-theme="a" id="settimana"> Ultima Settimana </a> 
+			<a href="#" data-role="button" data-theme="a" id="eco"> Eco-consiglio </a> 
+		</div>
+	</div>
+</body>
+</html>

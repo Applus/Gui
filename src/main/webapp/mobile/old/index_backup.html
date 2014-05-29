@@ -1,0 +1,1371 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1.0, maximum-scale=1.0, user-scalable=no""> 
+
+<title>Applus Energie Mobile</title>
+<link rel="stylesheet" href="css/custom-theme.css" />
+<!--  jquery and jquerymobile -->
+<link rel="stylesheet" href="css/jquery.mobile.structure-1.3.0.min.css" /> 
+<script src="js/jquery-1.9.1.min.js"></script> 
+<script src="js/jquery.mobile-1.3.0.min.js"></script> 
+
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="css/style.css">	
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+
+<!-- moment -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+<!-- just gauge -->
+<script src="js/raphael.2.1.0.min.js"></script>
+<script src="js/justgage.1.0.1.min.js"></script>
+
+<!-- angular js -->
+<script src="js/angular.min.js"></script>
+
+<script type="text/javascript">
+
+	$().ready(function() {
+/* 		$.mobile.page.prototype.options.addBackBtn=true; */
+		$.mobile.defaultPageTransition = "slide";
+		
+
+		pickdate();
+		setInterval(pickdate, 2000);
+	});
+
+	function pickdate() {
+
+		var now = moment();
+		now.lang('it');
+		$(".data").html(now.format('DD MMMM YYYY'));
+		$(".ora").html(now.format('HH:mm'));
+
+	}
+	
+	//funzione per parte ecoconsigli
+	array = [
+			'Ridurre di appena un grado la temperatura di una stanza pu&ograve; gi&agrave; assicurare un risparmio energetico del 6%!',
+			'Durante il giorno evitare di lasciare finestre e porte aperte, in caso di necessit&agrave; preferire le ore pi&ugrave; calde della giornata!',
+			'Utilizzare sempre lampadine a risparmio energetico!',
+			'Scollegare sempre gli apparecchi elettronici non utilizzati, perch&eacute; lo standby consuma tanta energia elettrica per nulla!' ];
+	
+	function showNext() {
+		if ($(".testo_consiglio").is(':visible')) {
+			var id = $(".testo_consiglio").attr('cons_id');
+
+			if (id == undefined)
+				id = 0;
+			else {
+				id++;
+				id = id % array.length;
+			}
+			$(".testo_consiglio").attr('cons_id', id)
+			$(".testo_consiglio").html(array[id]);
+			$('.testo_consiglio').show();
+		}
+	}
+</script>	
+</head>
+<body>
+
+	<!--  menù principale con i 3 bottoni della scelta di visualizzazione-->
+	<div id="default" data-role="page" data-theme="a">
+		<div data-role="header">
+			<p align="center">Scelta visualizzazione</p>
+		</div>
+		<div data-role="content">
+			<a href="#totaleedificio" data-role="button" data-theme="a" id="">Totale
+				Edificio</a> <a href="#aula" data-role="button" data-theme="a">Aula</a>
+			
+		</div>
+	</div>
+
+	<!-- contenuto pagina totale edificio -->
+	<div id="totaleedificio" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+		
+			<p class="nome_aula"> Totale Edificio </p>
+		
+			
+		</div> 
+
+		<div id="contenttotale" data-role="content">
+			<a href="#istantaneo_totale" data-role="button" data-theme="a" id="ist"> Istantaneo </a>
+			<a href="#graficocentrale_totale" data-role="button" data-theme="a" id="oggi"> Oggi </a> 
+			<a href="#settimana_totale" data-role="button" data-theme="a" id="settimana"> Ultimi Giorni </a> 
+			<a href="#ecoconsiglio_totale" data-role="button" data-theme="a" id="eco"> Eco-consiglio </a> 
+		</div>
+
+	</div>
+	
+	<!-- pagina con il grafico istantaneo del totale-->
+	<div id="istantaneo_totale" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+		
+			<p class="nome_aula"> Totale Edificio </p>
+		</div>
+		<div id="graficoistantaneo" data-role="content">
+
+<script type="text/javascript">
+	
+	$("#istantaneo_totale").on('pageshow', function(){
+	var name, unit, value;
+	var query_ist;
+	var g;
+	query_ist = query_db + "drain-tpe?limit=1&reversed=true";
+	var query_last_hour_tot = query_db + "drain-tpe";
+	var last_hour_tot = new Array();
+	//prendo la larghezza del pixel in div
+	var w1 = $('.grafico_istantaneo').width();
+	$('#gauge').css({
+		width: w1,
+		height: w1/1.25
+	});
+	
+	
+	
+		console.log(query_ist);
+		//variabili per i dati del grafico
+		//chiamata ajax per il dato
+		$.ajax({
+			url : query_ist,
+			dataType : "jsonp",
+			error : function(x, t, r) {
+				console.log(x.response.message); 
+			},
+			success : function(data) {
+				console.log("success");
+				name = data.name;
+				value = data.measures[0].value;
+				$(document).trigger('energy');
+			},
+			complete : function(qXHR, textStatus) {
+				//sull'orientation change faccio la stessa cosa, devo riadattare il gauge
+				$( window ).on( "orientationchange", function( event ) {
+					
+					var w1 = $('.grafico_istantaneo').width();
+					$('#gauge').css({
+						width: w1,
+						height: w1/1.25
+					});
+					$('#gauge').empty();
+					g = new JustGage({
+					    id: "gauge", 
+					    value: value.toFixed(0), 
+					    valueFontColor: 'white',
+					    min: 1000,
+					    max: 5000,
+					    title: "Consumo istantaneo",
+					    titleFontColor: "white",
+					    label: "W"
+					  }); 
+				});
+				
+				//se il div che contiene il grafico ha già il contenuto
+				if ($("#gauge").text().length > 0) {
+				     //lo svuoto
+				     $("#gauge").empty();
+				}
+				
+				g = new JustGage({
+				    id: "gauge", 
+				    value: value.toFixed(0), 
+				    valueFontColor: 'white',
+				    min: 1000,
+				    max: 5000,
+				    title: "Consumo istantaneo",
+				    titleFontColor: "white",
+				    label: "W"
+				  }); 
+				setInterval(function(){
+					$.ajax({
+						url : query_ist,
+						dataType : "jsonp",
+						error : function(x, t, r) {
+							console.log(x.response.message); 
+						},
+						success : function(data) {
+							console.log("success");
+							name = data.name;
+							value = data.measures[0].value;
+							$(document).trigger('energy');
+						},
+						complete : function(qXHR, textStatus) {
+							//sull'orientation change faccio la stessa cosa, devo riadattare il gauge
+							$( window ).on( "orientationchange", function( event ) {
+								
+								var w1 = $('.grafico_istantaneo').width();
+								$('#gauge').css({
+									width: w1,
+									height: w1/1.25
+								});
+								$('#gauge').empty();
+								g = new JustGage({
+								    id: "gauge", 
+								    value: value.toFixed(0), 
+								    valueFontColor: 'white',
+								    min: 1000,
+								    max: 5000,
+								    title: "Consumo istantaneo",
+								    titleFontColor: "white",
+								    label: "W"
+								  }); 
+							});
+							g.refresh(value.toFixed(0));
+						}
+					//fine chiamata ajax
+					});
+				}, 10000);
+			}
+		//fine chiamata ajax
+		});
+		
+		//anche qui inserisco max e min
+		//faccio chiamata ajax per avere i valori dell'ultima ora (la rifaccio ogni ora)
+		$.ajax({
+			url : query_last_hour_tot,
+			dataType : "jsonp",
+			error : function(x, t, r) {
+				console.log(x.response.message);
+			},
+			success : function(data) {
+				console.log("success query ultima ora");
+				//memorizzo nel vettori i dati
+				count = data.count;
+				
+				for(var i=0; i<count; i++){
+					last_hour_tot[i] = data.measures[i].value.toFixed(0);
+				}
+	
+			},
+			complete : function(qXHR, textStatus) {
+				//ordino
+				last_hour_tot.sort();
+				var min = last_hour_tot[0];
+				$("#span_min_tot").html(min);
+				var max = last_hour_tot[count-1];
+				$("#span_max_tot").html(max);
+				//lo inserisco negli span
+				
+				setInterval(function() {
+					$.ajax({
+						url : query_last_hour_tot,
+						dataType : "jsonp",
+						error : function(x, t, r) {
+							console.log(x.response.message);
+						},
+						success : function(data) {
+							console.log("success query ultima ora");
+							//memorizzo nel vettori i dati
+							count = data.count;
+							
+							for(var i=0; i<count; i++){
+								last_hour_tot[i] = data.measures[i].value.toFixed(0);
+							}
+						},
+						complete : function(qXHR, textStatus) {
+							//ordino
+							last_hour.sort();
+							//lo inserisco negli span
+							var min = last_hour_tot[0];
+							$("#span_min_tot").html(min);
+							var max = last_hour_tot[count-1];
+							$("#span_max_tot").html(max);
+							
+						}
+					//fine chiamata ajax
+					});
+				}, 60*60*1000);
+			}
+		//fine chiamata ajax
+		});
+		
+	});
+ 
+</script>
+<div class="grafico_istantaneo">
+	
+	<div id="gauge" ></div>
+	
+	<div class="max_min">
+		<div class="max"> 
+			<h3>MAX</h3>
+			<img src="img/freccia_su.png"/>	
+			<span id="span_max_tot"> N/A </span> W
+		</div>
+		<div class="min"> 
+			<h3> MIN</h3>
+			<img src="img/freccia_giu.png"/>	
+			<span id="span_min_tot"> N/A </span> W
+		</div>
+	</div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	<!-- pagina con il grafico orario del totale -->
+	<div id="graficocentrale_totale" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+		
+			<p class="nome_aula"> Totale Edificio </p>
+		</div>
+		<div  data-role="content">
+		<script type="text/javascript">
+	
+	$("#graficocentrale_totale").on('pageshow', function() {
+				var chart1;
+	
+				var yesterday_values = new Array();
+				var today_values = new Array();
+
+				var timer;
+				
+				var query_yesterday;
+				var query_today;
+				
+				clearInterval(timer);
+
+				//prendo data, mese e anno corrente
+				//uso funzioni di moment.js
+
+				/*OGGI*/
+				var day = moment().date();
+				var month = moment().month() +1; //perchè il mese parte da zero
+				var year = moment().year();
+				//devo prendere l'ora corrente
+				var current_hour = moment().hour();
+				var query_today_current_hour = moment().subtract('hour',1).hour();
+				//calcolo le tre ore precedenti
+				var prev_hour = moment().subtract('hour',2).hour();
+				console.log("prev hour "+prev_hour);
+				
+				//in base a questo costruisco anche l'array con le categories
+				var categories = [
+				                 	moment().subtract('hour',2).hour()+"-"+moment().subtract('hour',1).hour(),
+				                 	moment().subtract('hour',1).hour()+"-"+moment().hour(),
+				                 	moment().hour()+"-"+moment().add('hour',1).hour()
+				                 ];
+				
+				/*IERI*/
+				var yesterday = moment().subtract('days', 1);
+				console.log(yesterday);
+				var yesterday_day = yesterday.date();
+				var yesterday_month = yesterday.month() + 1;
+				var yesterday_year = yesterday.year();
+				
+				console.log(day + " " + month + " " + year);
+				console.log(yesterday_day + " " + yesterday_month + " " + yesterday_year);
+				
+				query_yesterday = query_dwh + "SELECT%20Measures%20ON%20COLUMNS," + "%20{{[Time].[" + yesterday_year + "].["
+							+ yesterday_month + "].[" + yesterday_day + "].["+prev_hour+"]%20:%20[Time].[" + yesterday_year + "].[" + yesterday_month
+							+ "].[" + yesterday_day + "].["+current_hour+"]}}" + "%20ON%20ROWS%20FROM%20[Energy]";
+				$.ajax({
+					url : query_yesterday,
+					type : "GET",
+					dataType : "jsonp",
+					async : false,
+					success : function(data) {
+						console.log("ajax success");
+						var count = data.cells.length;
+						console.log(count);
+						for ( var i = 0; i < count; i++) {
+							yesterday_values[i] = round(data.cells[i].value / 1000);
+							console.log(yesterday_values[i]);
+						}
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr) {
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete : function(qXHR, textStatus) {
+						chart1 = new Highcharts.Chart({
+							chart : {
+								renderTo : 'chart',
+								type : 'column',
+							},
+							colors : [ '#F15A24', '#0071BC' ],
+							legend : {
+								verticalAlign : 'bottom'
+							},
+							title : {
+						        margin: 80,
+								text : 'Energia consumata',
+								style: {
+									fontSize:'1.2em'
+								}
+							},
+							xAxis : {
+								categories : categories
+							},
+							yAxis : {
+								title : {
+									text : 'kWh',
+								},
+								min : 1
+							},
+							series : [ {
+								name : 'IERI',
+								data : yesterday_values
+							}, {
+								name : 'OGGI',
+								data : [ 0, 0, 0 ]
+							} ]
+						}, function(chart1) {
+	
+							console.log("current " + current_hour);
+							console.log("hour " + hour); 
+								//costruisco la query
+								
+									query_today = query_dwh + "SELECT%20Measures%20ON%20COLUMNS," + "%20{{[Time].[" + year + "].[" + month
+											+ "].[" + day + "].["+prev_hour+"]%20:%20[Time].[" + year + "].[" + month + "].[" + day + "].["
+											+ query_today_current_hour + "]}}" + "%20ON%20ROWS%20FROM%20[Energy]";
+								
+								console.log(query_today);
+
+								//chiamata ajax
+								$.ajax({
+									url : query_today,
+									type : "GET",
+									dataType : "jsonp",
+									async : false,
+									success : function(data) {
+										//aggiorno hour solo se la chiamata ajax ï¿½ andata a buon fine
+										hour = current_hour;
+										//prendo i valori e li metto nell'array today
+										var count = data.cells.length;
+										console.log(count);
+										for ( var i = 0; i < count; i++) {
+											today_values[i] = round(data.cells[i].value / 1000);
+											console.log(today_values[i]);
+										}
+									},
+									error : function(xhr, ajaxOptions, thrownErrorxhr) {
+										console.log(xhr.status);
+										console.log(thrownErrorxhr.message);
+									},
+									complete : function(qXHR, textStatus) {
+										//devo aggiornare i valori della serie che si riferisce ad oggi
+										for ( var i = 0; i < today_values.length; i++) {
+											var point = chart1.series[1].points[i];
+											var newVal = today_values[i];
+											point.update(newVal);
+										}
+									}
+								});
+							
+
+							//ogni 10 min controllo se Ã¨ cambiata l'ora
+							timer = setInterval(function() {
+								//devo ricalcolare l'intervallo
+								var day = moment().date();
+								var month = moment().month() +1; //perchè il mese parte da zero
+								var year = moment().year();
+								//devo prendere l'ora corrente
+								var current_hour = moment().hour();
+								//calcolo le tre ore precedenti
+								var prev_hour = moment().subtract('hour',2).hour();
+								//in base a questo costruisco anche l'array con le categories
+								var categories = [
+								                 	moment().subtract('hour',2).hour()+"-"+moment().subtract('hour',1).hour(),
+								                 	moment().subtract('hour',1).hour()+"-"+moment().hour(),
+								                 	moment().hour()+"-"+moment().add('hour',1).hour()
+								                 ];
+		                        //query today deve essere un'ora indietro
+								query_today_current_hour = moment().subtract('hour',1).hour();
+							
+									//costruisco la query
+									
+										query_today = query_dwh + "SELECT%20Measures%20ON%20COLUMNS," + "%20{{[Time].[" + year + "].["
+												+ month + "].[" + day + "].["+prev_hour+"]%20:%20[Time].[" + year + "].[" + month + "].[" + day + "].["
+												+ query_today_current_hour + "]}}" + "%20ON%20ROWS%20FROM%20[Energy]";
+									
+									
+									console.log(query_today);
+
+									//chiamata ajax
+									$.ajax({
+										url : query_today,
+										type : "GET",
+										dataType : "jsonp",
+										async : false,
+										success : function(data) {
+											//aggiorno hour solo se la chiamata ajax ï¿½ andata a buon fine
+											hour = current_hour;
+											//prendo i valori e li metto nell'array today
+											var count = data.cells.length;
+											console.log(count);
+											for ( var i = 0; i < count; i++) {
+												today_values[i] = round(data.cells[i].value / 1000);
+												console.log(today_values[i]);
+											}
+										},
+										error : function(xhr, ajaxOptions, thrownErrorxhr) {
+											console.log(xhr.status);
+											console.log(thrownErrorxhr.message);
+										},
+										complete : function(qXHR, textStatus) {
+											//devo aggiornare i valori della serie che si riferisce ad oggi
+											for ( var i = 0; i < today_values.length; i++) {
+												var point = chart1.series[1].points[i];
+												var newVal = today_values[i];
+												point.update(newVal);
+											}
+											cart1.xAxis[0].setCategories(categories);
+										}
+									});
+							
+
+							}, 10 * 60 * 1000);
+
+						});
+					}
+				});
+
+			});
+</script>
+
+<div class="grafico_centrale">
+
+	<div id="chart"></div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	<!-- pagina con il grafico dell'ultima settimana -->
+	<div id="settimana_totale" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+		
+			<p class="nome_aula"> Totale Edificio </p>
+		</div>
+		<div  data-role="content">
+		<script type="text/javascript">
+	
+
+	$("#settimana_totale")
+			.on('pageshow',
+					function() {
+				var query_week;
+				var week_chart;
+				var last_week_values = new Array();
+
+				var day_begin_last_week;
+				var month_begin_last_week;
+				var year_begin_last_week;
+
+				var day_end_last_week;
+				var month_end_last_week;
+				var year_end_last_week;
+
+				var parameter;
+						//voglio prendere la data, mettere i 3 giorni precedenti
+						
+						//prendo data odierna con moment
+						var today = moment();
+						
+		
+
+						//creo un vettore con i 3 giorni precedenti ad oggi
+						var last_week = new Array(3);
+						var j = 1;
+
+						for ( var i = 2; i >= 0; i--) {
+							//sottraggo da today le i 3 giorni precedenti
+							var date = today.subtract('days', 1);
+							var dateString = date.date()+"/"+(date.month()+1); //più uno eprchè i mesi iniziano da zero
+							console.log("gli ultimi tre giorni sono " +dateString);
+							//questo mi serve comunque per le categories
+							last_week[i] = dateString;
+							
+							//qui mi servono data di inizio e fine della settimana per la query
+							if (j == 1) {
+								//memorizzo giorno mese e anno dell'ultimo giorno degli ultimi sette giorno
+								//cioï¿½ ieri
+								day_end_last_week = date.date();
+								month_end_last_week = date.month() + 1;
+								year_end_last_week = date.year();
+								console.log("j==1 " +day_end_last_week + " " + month_end_last_week + " " + year_end_last_week);
+							}
+							if (j == 3) {
+								//memorizzo giorno, mese e anno dell'inizio degli ultimi 7 giorni
+								day_begin_last_week = date.date();
+								month_begin_last_week = date.month() + 1;
+								year_begin_last_week = date.year();
+								console.log("j==3 " +day_begin_last_week + " " + month_begin_last_week + " " + year_begin_last_week);
+							}
+							j++;
+
+						}
+
+						
+							query_week = query_dwh + "SELECT%20Measures%20ON%20COLUMNS,%20{[Time].[" + year_begin_last_week + "].["
+									+ month_begin_last_week + "].[" + day_begin_last_week + "]:" + "[Time].[" + year_end_last_week + "].["
+									+ month_end_last_week + "].[" + day_end_last_week + "]}ON%20ROWS%20FROM%20[Energy]";
+						
+						console.log(query_week);
+
+						//chiamata ajax per il file json di esempio dei consumi dell'ultima settimana
+						$.ajax({
+							url : query_week,
+							type : "GET",
+							dataType : "jsonp",
+							success : function(data) {
+								var count = data.cells.length;
+								for ( var i = 0; i < count; i++) {
+									/* last_week_value_example[i]=data.data[i].consumo_totale/1000;
+									//alert(yesterday_value_example[i]); */
+									last_week_values[i] = round(data.cells[i].value / 1000);
+								}
+							},
+							error : function(xhr, ajaxOptions, thrownErrorxhr) {
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+							},
+							complete : function(qXHR, textStatus) {
+								week_chart = new Highcharts.Chart({
+									chart : {
+										renderTo : 'week_chart',
+										type : 'column'
+									},
+									colors : [ '#FBAE17' ],
+									legend : {
+										enabled : false
+									},
+									title : {
+										text : "Energia consumata",
+										style: {
+											fontSize:'1.2em'
+										}
+									},
+									subtitle: {
+							            text: 'negli ultimi giorni'
+									},
+									xAxis : {
+										categories : last_week
+									},
+									yAxis : {
+										title : {
+											text : 'kW h'
+										},
+										min : 30
+									},
+									series : [ {
+										name : 'Energia',
+										data : last_week_values
+									} ]
+
+								});
+							}
+						});
+
+					});
+</script>
+
+<div class="grafico_settimana">
+	<div id="week_chart"></div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	<!-- pagina con l'ecoconsiglio -->
+	<div id="ecoconsiglio_totale" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+			
+			<p class="nome_aula"> Ecoconsiglio </p>
+		</div>
+		<div  data-role="content">
+		<script type="text/javascript">
+	
+
+	$("#ecoconsiglio_totale").on('pageshow', function() {
+		$("#pericolo_giallo").hide();
+		showNext();
+		var timer = setInterval(function() {
+			showNext();
+		}, 7000);
+
+		var alertActive = false;
+		$(document).on('high_energy', function(event) {
+
+			if (alertActive)
+				return;
+
+			alertActive = true;
+
+			$(".testo_consiglio").hide();
+			$("#immagine").attr("src", "img/pericolo_giallo.png");
+		 	$("#pericolo_giallo").show(); 
+
+			setTimeout(function() {
+				console.log('disable alert');
+				$("#immagine").attr("src", "img/lampadina.png");
+				$("#pericolo_giallo").hide();
+
+				$(".testo_consiglio").show();
+				showNext();
+				
+				alertActive = false;
+			}, 5000);
+
+			console.log("alert");
+		});
+	});
+</script>
+
+
+<div id="eco_consigli">
+
+	<div id="titolo_consiglio">
+		<img src="img/lampadina.png" alt="immagine" id="immagine" />
+	</div>
+
+	<div id="contenuto">
+		<div id="pericolo_giallo">Attenzione! Il consumo &egrave; troppo
+			elevato!</div>
+		<div class="testo_consiglio"></div>
+	</div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	
+	
+	
+	<!-- contenuto pagina aula -->
+	<div id="aula" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+			<p class="nome_aula" > Aula Informatica</p>
+		</div>
+
+		<div id="contentaula" data-role="content">
+			<a href="#istantaneo_aula" data-role="button" data-theme="a" id="ist"> Istantaneo </a>
+			<a href="#graficocentrale_aula" data-role="button" data-theme="a" id="oggi"> Oggi </a> 
+			<a href="#settimana_aula" data-role="button" data-theme="a" id="settimana"> Ultimi Giorni  </a> 
+			<a href="#ecoconsiglio_totale" data-role="button" data-theme="a" id="eco"> Eco-consiglio </a> 
+		</div> 
+	</div>
+	
+	<!-- pagina con il grafico istantaneo dell'aula-->
+	<div id="istantaneo_aula" data-role="page" data-theme="a">
+		<div data-role="header">
+		<a href="#" class="ui-btn-left ui-btn ui-btn-icon-left ui-btn-corner-all ui-shadow ui-btn-up-a" data-rel="back" data-icon="arrow-l" data-theme="a"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text">Back</span><span class="ui-icon ui-icon-arrow-l ui-icon-shadow"></span></span></a>
+
+			
+			<p class="nome_aula"> Aula Informatica </p>
+		</div>
+		<div data-role="content">
+		
+
+<script type="text/javascript">
+	
+
+	$("#istantaneo_aula").on('pageshow', function() {
+		var name, unit, value;
+		var query_ist;
+		
+		var g1;
+		query_ist = query_db + "drain-tpe?limit=1&reversed=true";
+		var query_last_hour_aula = query_db + "drain-tpe";
+		var last_hour_aula = new Array();
+		
+		var w1 = $('.grafico_istantaneo_aula').width();
+		$('#gauge_aula').css({
+			width: w1,
+			height: w1/1.25
+		});
+		console.log(query_ist);
+		//variabili per i dati del grafico
+		//chiamata ajax per il dato
+		$.ajax({
+			url : query_ist,
+			dataType : "jsonp",
+			error : function(x, t, r) {
+				console.log(x.response.message); 
+			},
+			success : function(data) {
+				console.log("success");
+				name = data.name;
+				value = data.measures[0].value;
+				$(document).trigger('energy');
+			},
+			complete : function(qXHR, textStatus) {
+				//sull'orientation change faccio la stessa cosa, devo riadattare il gauge
+				$( window ).on( "orientationchange", function( event ) {
+					
+					var w1 = $('.grafico_istantaneo_aula').width();
+					$('#gauge_aula').css({
+						width: w1,
+						height: w1/1.25
+					});
+					$('#gauge_aula').empty();
+					g1 = new JustGage({
+					    id: "gauge_aula", 
+					    value: value.toFixed(0), 
+					    valueFontColor: 'white',
+					    min: 1000,
+					    max: 5000,
+					    title: "Consumo istantaneo",
+					    titleFontColor: "white",
+					    label: "W"
+					  }); 
+				});
+				//se il div che contiene il grafico ha già il contenuto
+				if ($("#gauge_aula").text().length > 0) {
+				     //lo svuoto
+				     $("#gauge_aula").empty();
+				}
+				g1 = new JustGage({
+				    id: "gauge_aula", 
+				    value: value.toFixed(0), 
+				    valueFontColor: 'white',
+				    min: 1000,
+				    max: 5000,
+				    title: "Consumo istantaneo",
+				    titleFontColor: "white",
+				    label: "W"
+				  }); 
+				setInterval(function(){
+					$.ajax({
+						url : query_ist,
+						dataType : "jsonp",
+						error : function(x, t, r) {
+							console.log(x.response.message); 
+						},
+						success : function(data) {
+							console.log("success");
+							name = data.name;
+							value = data.measures[0].value;
+							$(document).trigger('energy');
+						},
+						complete : function(qXHR, textStatus) {
+							//sull'orientation change faccio la stessa cosa, devo riadattare il gauge
+							$( window ).on( "orientationchange", function( event ) {
+								
+								var w1 = $('.grafico_istantaneo_aula').width();
+								$('#gauge_aula').css({
+									width: w1,
+									height: w1/1.25
+								});
+								$('#gauge_aula').empty();
+								g1 = new JustGage({
+								    id: "gauge_aula", 
+								    value: value.toFixed(0), 
+								    valueFontColor: 'white',
+								    min: 1000,
+								    max: 5000,
+								    title: "Consumo istantaneo",
+								    titleFontColor: "white",
+								    label: "W"
+								  }); 
+							});
+							g1.refresh(value.toFixed(0));
+						}
+					//fine chiamata ajax
+					});
+				}, 10000);
+			}
+		//fine chiamata ajax
+		});
+		
+		//anche qui inserisco max e min
+		//faccio chiamata ajax per avere i valori dell'ultima ora (la rifaccio ogni ora)
+		$.ajax({
+			url : query_last_hour_aula,
+			dataType : "jsonp",
+			error : function(x, t, r) {
+				console.log(x.response.message);
+			},
+			success : function(data) {
+				console.log("success query ultima ora");
+				//memorizzo nel vettori i dati
+				count = data.count;
+				
+				for(var i=0; i<count; i++){
+					last_hour_aula[i] = data.measures[i].value.toFixed(0);
+				}
+	
+			},
+			complete : function(qXHR, textStatus) {
+				//ordino
+				last_hour_aula.sort();
+				var min = last_hour_aula[0];
+				$("#span_min_aula").html(min);
+				var max = last_hour_aula[count-1];
+				$("#span_max_aula").html(max);
+				//lo inserisco negli span
+				
+				setInterval(function() {
+					$.ajax({
+						url : query_last_hour_aula,
+						dataType : "jsonp",
+						error : function(x, t, r) {
+							console.log(x.response.message);
+						},
+						success : function(data) {
+							console.log("success query ultima ora");
+							//memorizzo nel vettori i dati
+							count = data.count;
+							
+							for(var i=0; i<count; i++){
+								last_hour_aula[i] = data.measures[i].value.toFixed(0);
+							}
+						},
+						complete : function(qXHR, textStatus) {
+							//ordino
+							last_hour.sort();
+							//lo inserisco negli span
+							var min = last_hour_aula[0];
+							$("#span_min_aula").html(min);
+							var max = last_hour_aula[count-1];
+							$("#span_max_aula").html(max);
+							
+						}
+					//fine chiamata ajax
+					});
+				}, 60*60*1000);
+			}
+		//fine chiamata ajax
+		});
+	});
+</script>
+<div class="grafico_istantaneo_aula">
+	<div id="gauge_aula"></div>
+		<div class="max_min">
+		<div class="max"> 
+			<h3>MAX</h3>
+			<img src="img/freccia_su.png"/>	
+			<span id="span_max_aula"> N/A </span> W
+		</div>
+		<div class="min"> 
+			<h3> MIN</h3>
+			<img src="img/freccia_giu.png"/>	
+			<span id="span_min_aula"> N/A </span> W
+		</div>
+	</div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	<!-- pagina con il grafico orario dell'aula -->
+	<div id="graficocentrale_aula" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+		
+			<p class="nome_aula"> Aula Informatica </p>
+		</div>
+		<div  data-role="content">
+		<script type="text/javascript">
+	var chart1;
+
+	var yesterday_values = new Array();
+	var today_values = new Array();
+
+	var timer;
+	//prima ora in cui si visualizzano i dati
+	var first_hour = 9;
+	//variabili per memorizzare data corrente
+	var date;
+	var hour;
+	var current_hour;
+	var query_yesterday;
+	var query_today;
+	//NB: ho forzato le due chiamate ajax come sincrone, cosï¿½ non dovrebbero esserci problemi per il grafico
+	$("#graficocentrale_aula").on('pageshow',
+			function() {
+				clearInterval(timer);
+
+				//prendo data, mese e anno corrente
+				//uso funzioni di moment.js
+
+				/*OGGI*/
+				var day = moment().date();
+				var month = moment().month() +1; //perchè il mese parte da zero
+				var year = moment().year();
+				
+				/*IERI*/
+				var yesterday = moment().subtract('days', 1);
+				console.log(yesterday);
+				var yesterday_day = yesterday.date();
+				var yesterday_month = yesterday.month() + 1;
+				var yesterday_year = yesterday.year();
+				
+				//devo prendere l'ora corrente
+				var current_hour = moment().hour();
+				var query_today_current_hour = moment().subtract('hour',1).hour();
+				//calcolo le tre ore precedenti
+				var prev_hour = moment().subtract('hour',2).hour();
+				console.log("prev hour "+prev_hour);
+				
+				//in base a questo costruisco anche l'array con le categories
+				var categories = [
+				                 	moment().subtract('hour',2).hour()+"-"+moment().subtract('hour',1).hour(),
+				                 	moment().subtract('hour',1).hour()+"-"+moment().hour(),
+				                 	moment().hour()+"-"+moment().add('hour',1).hour()
+				                 ];
+				
+				console.log(day + " " + month + " " + year);
+				console.log(yesterday_day + " " + yesterday_month + " " + yesterday_year);
+				
+				//in base al parameter, costruisco la query
+				
+					query_yesterday = query_dwh + "SELECT%20Measures%20ON%20COLUMNS," + "%20{{[Time].[" + yesterday_year + "].["
+							+ yesterday_month + "].[" + yesterday_day + "].["+prev_hour+"]%20:%20[Time].[" + yesterday_year + "].[" + yesterday_month
+							+ "].[" + yesterday_day + "].["+current_hour+"]}}" + "%20ON%20ROWS%20FROM%20[Energy]";
+				
+				$.ajax({
+					url : query_yesterday,
+					type : "GET",
+					dataType : "jsonp",
+					async : false,
+					success : function(data) {
+						console.log("ajax success");
+						var count = data.cells.length;
+						console.log(count);
+						for ( var i = 0; i < count; i++) {
+							yesterday_values[i] = round(data.cells[i].value / 1000);
+							console.log(yesterday_values[i]);
+						}
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr) {
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete : function(qXHR, textStatus) {
+						chart1 = new Highcharts.Chart({
+							chart : {
+								renderTo : 'chart_aula',
+								type : 'column',
+							},
+							colors : [ '#F15A24', '#0071BC' ],
+							legend : {
+								verticalAlign : 'bottom'
+							},
+							title : {
+						        margin: 80,
+								text : 'Energia consumata',
+								style: {
+									fontSize:'1.2em'
+								}
+							},
+							xAxis : {
+								categories : categories
+							},
+							yAxis : {
+								title : {
+									text : 'kWh',
+								},
+								min : 1
+							},
+							series : [ {
+								name : 'IERI',
+								data : yesterday_values
+							}, {
+								name : 'OGGI',
+								data : [ 0, 0, 0 ]
+							} ]
+						}, function(chart1) {
+
+								//costruisco la query
+							
+									query_today = query_dwh + "SELECT%20Measures%20ON%20COLUMNS,"
+											+ "%20CrossJoin([Location].[Edificio%201].[Piano%20Seminterrato].[ServerFarm],"
+											+ "%20([Time].[" + year + "].[" + month + "].[" + day + "].["+prev_hour+"]:" + "[Time].[" + year + "].["
+											+ month + "].[" + day + "].[" + query_today_current_hour + "]))%20ON%20ROWS%20FROM%20[Energy]"
+								
+								console.log(query_today);
+
+								//chiamata ajax
+								$.ajax({
+									url : query_today,
+									type : "GET",
+									dataType : "jsonp",
+									async : false,
+									success : function(data) {
+										//aggiorno hour solo se la chiamata ajax ï¿½ andata a buon fine
+										hour = current_hour;
+										//prendo i valori e li metto nell'array today
+										var count = data.cells.length;
+										console.log(count);
+										for ( var i = 0; i < count; i++) {
+											today_values[i] = round(data.cells[i].value / 1000);
+											console.log(today_values[i]);
+										}
+									},
+									error : function(xhr, ajaxOptions, thrownErrorxhr) {
+										console.log(xhr.status);
+										console.log(thrownErrorxhr.message);
+									},
+									complete : function(qXHR, textStatus) {
+										//devo aggiornare i valori della serie che si riferisce ad oggi
+										for ( var i = 0; i < today_values.length; i++) {
+											var point = chart1.series[1].points[i];
+											var newVal = today_values[i];
+											point.update(newVal);
+										}
+									}
+								});
+							
+
+							//ogni 10 min controllo se Ã¨ cambiata l'ora
+							timer = setInterval(function() {
+								//devo ricalcolare l'intervallo
+								var day = moment().date();
+								var month = moment().month() +1; //perchè il mese parte da zero
+								var year = moment().year();
+								//devo prendere l'ora corrente
+								var current_hour = moment().hour();
+								//calcolo le tre ore precedenti
+								var prev_hour = moment().subtract('hour',2).hour();
+								//in base a questo costruisco anche l'array con le categories
+								var categories = [
+								                 	moment().subtract('hour',2).hour()+"-"+moment().subtract('hour',1).hour(),
+								                 	moment().subtract('hour',1).hour()+"-"+moment().hour(),
+								                 	moment().hour()+"-"+moment().add('hour',1).hour()
+								                 ];
+		                        //query today deve essere un'ora indietro
+								query_today_current_hour = moment().subtract('hour',1).hour();
+		                        
+		                        
+					
+									//costruisco la query
+									
+										query_today = query_dwh + "SELECT%20Measures%20ON%20COLUMNS,"
+												+ "%20CrossJoin([Location].[Edificio%201].[Piano%20Seminterrato].[ServerFarm],"
+												+ "%20([Time].[" + yesterday_year + "].[" + yesterday_month + "].[" + yesterday_day
+												+ "].["+prev_hour+"]:" + "[Time].[" + yesterday_year + "].[" + yesterday_month + "].[" + yesterday_day
+												+ "].[" + query_today_current_hour + "]))%20ON%20ROWS%20FROM%20[Energy]"
+								
+									console.log(query_today);
+
+									//chiamata ajax
+									$.ajax({
+										url : query_today,
+										type : "GET",
+										dataType : "jsonp",
+										async : false,
+										success : function(data) {
+											//aggiorno hour solo se la chiamata ajax ï¿½ andata a buon fine
+											hour = current_hour;
+											//prendo i valori e li metto nell'array today
+											var count = data.cells.length;
+											console.log(count);
+											for ( var i = 0; i < count; i++) {
+												today_values[i] = round(data.cells[i].value / 1000);
+												console.log(today_values[i]);
+											}
+										},
+										error : function(xhr, ajaxOptions, thrownErrorxhr) {
+											console.log(xhr.status);
+											console.log(thrownErrorxhr.message);
+										},
+										complete : function(qXHR, textStatus) {
+											//devo aggiornare i valori della serie che si riferisce ad oggi
+											for ( var i = 0; i < today_values.length; i++) {
+												var point = chart1.series[1].points[i];
+												var newVal = today_values[i];
+												point.update(newVal);
+											}
+											cart1.xAxis[0].setCategories(categories);
+										}
+									});
+								
+
+							}, 10 * 60 * 1000);
+
+						});
+					}
+				});
+
+			});
+</script>
+
+<div class="grafico_centrale">
+
+	<div id="chart_aula"></div>
+</div>
+		
+		</div>
+		
+	</div>
+	
+	<!-- pagina con il grafico dell'ultima settimana -->
+	<div id="settimana_aula" data-role="page" data-theme="a" data-add-back-btn="true" data-back-btn-text="Back">
+		<div data-role="header">
+			<p class="nome_aula"> Aula Informatica </p>
+		</div>
+		<div data-role="content">
+		<script type="text/javascript">
+	var query_week;
+	var week_chart;
+	var last_week_values = new Array();
+
+	var day_begin_last_week;
+	var month_begin_last_week;
+	var year_begin_last_week;
+
+	var day_end_last_week;
+	var month_end_last_week;
+	var year_end_last_week;
+
+	var parameter;
+
+	$("#settimana_aula")
+			.on('pageshow',
+					function() {
+						
+						//voglio prendere la data, mettere i 7 giorni precedenti
+						
+						//prendo data odierna con moment
+						var today = moment();
+						
+						
+				
+						//creo un vettore con i 3 giorni precedenti ad oggi
+						var last_week = new Array(3);
+						var j = 1;
+
+						for ( var i = 2; i >= 0; i--) {
+							//sottraggo da today le i 7 giorni precedenti
+							var date = today.subtract('days', 1);
+							var dateString = date.date()+"/"+(date.month()+1); //più uno eprchè i mesi iniziano da zero
+							console.log("last week è " +dateString);
+							//questo mi serve comunque per le categories
+							last_week[i] = dateString;
+							
+							//qui mi servono data di inizio e fine della settimana per la query
+							if (j == 1) {
+								//memorizzo giorno mese e anno dell'ultimo giorno degli ultimi sette giorno
+								//cioï¿½ ieri
+								day_end_last_week = date.date();
+								month_end_last_week = date.month() + 1;
+								year_end_last_week = date.year();
+								console.log("j==1 " +day_end_last_week + " " + month_end_last_week + " " + year_end_last_week);
+							}
+							if (j == 3) {
+								//memorizzo giorno, mese e anno dell'inizio degli ultimi 7 giorni
+								day_begin_last_week = date.date();
+								month_begin_last_week = date.month() + 1;
+								year_begin_last_week = date.year();
+								console.log("j==7 " +day_begin_last_week + " " + month_begin_last_week + " " + year_begin_last_week);
+							}
+							j++;
+
+						}
+
+						
+							query_week = query_dwh
+									+ "SELECT%20Measures%20ON%20COLUMNS,%20CrossJoin({[Location].[Edificio%201].[Piano%20Seminterrato].[ServerFarm]},"
+									+ "{[Time].[" + year_begin_last_week + "].[" + month_begin_last_week + "].[" + day_begin_last_week
+									+ "]:" + "[Time].[" + year_end_last_week + "].[" + month_end_last_week + "].[" + day_end_last_week
+									+ "]})%20ON%20ROWS%20FROM%20[Energy]";
+					
+
+						//chiamata ajax per il file json di esempio dei consumi dell'ultima settimana
+						$.ajax({
+							url : query_week,
+							type : "GET",
+							dataType : "jsonp",
+							success : function(data) {
+								var count = data.cells.length;
+								for ( var i = 0; i < count; i++) {
+									/* last_week_value_example[i]=data.data[i].consumo_totale/1000;
+									//alert(yesterday_value_example[i]); */
+									last_week_values[i] = round(data.cells[i].value / 1000);
+								}
+							},
+							error : function(xhr, ajaxOptions, thrownErrorxhr) {
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+							},
+							complete : function(qXHR, textStatus) {
+								week_chart = new Highcharts.Chart({
+									chart : {
+										renderTo : 'week_chart_aula',
+										type : 'column'
+									},
+									colors : [ '#FBAE17' ],
+									legend : {
+										enabled : false
+									},
+									title : {
+										text : "Energia consumata",
+										style : {
+											fontSize:'1.2em'
+										}
+									},
+									subtitle: {
+							            text: 'negli ultimi giorni'
+									},
+									xAxis : {
+										categories : last_week
+									},
+									yAxis : {
+										title : {
+											text : 'kW h'
+										},
+										min : 30
+									},
+									series : [ {
+										name : 'Energia',
+										data : last_week_values
+									} ]
+
+								});
+							}
+						});
+
+					});
+</script>
+
+<div class="grafico_settimana">
+	<div id="week_chart_aula"></div>
+</div>
+		
+		</div>
+		
+	</div>
+
+		
+	</div>
+</div>
+	
+<!-- angular js -->
+<script src="js/angular.min.js"></script>
+<!-- highcharts -->
+<script src="js/highcharts.js"></script>
+<!-- highstock -->
+<script src="js/highstock.js"></script>
+<!-- highchart more -->
+<script src="js/highcharts-more.js"></script>
+
+<!-- tema grafici -->
+<script src="js/charts.theme.js"></script>
+
+
+</body>
+</html>

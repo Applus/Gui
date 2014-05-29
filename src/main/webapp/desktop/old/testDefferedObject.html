@@ -1,0 +1,300 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<html>
+<head>
+<title> Test Deffered Object</title>
+<!-- script jquery -->
+<script type="text/javascript" src="js/jquery-1.9.0.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+<!-- css jquery ui -->
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+</head>
+<body>
+<script>
+$(document).ready(function(){
+	
+	$.when(ajax1(), ajax2()).then(function(r,s){
+		console.log(r[0]);
+		console.log(s[0]);
+	});
+		
+});
+
+
+var query = query_dwh + "SELECT%20[Measures].[Energy%20Consumption]%20ON%20COLUMNS,%20Intersect([Time].[Minutes].Members%20,%20([Time].[2013].[1].[1].[0].[0]:[Time].[2013].[1].[31].[0].[0]))%20ON%20ROWS%20FROM%20[Energy]";
+function ajax1(){
+	return $.ajax({
+	url : query,
+	dataType: 'jsonp'
+});
+}
+
+
+	
+
+var query2 =  query_dwh + "SELECT%20[Measures].[Energy%20Consumption]%20ON%20COLUMNS,%20Crossjoin(Intersect([Time].[Minutes].Members%20,%20([Time].[2013].[1].[1].[0].[0]:[Time].[2013].[1].[31].[0].[0])),[Location].[Edificio 1].[Piano Seminterrato].[ServerFarm].[energy_meter_1].[m1-p1])%20ON%20ROWS%20FROM%20[Energy]";
+
+
+function ajax2(){ 
+	return $.ajax({
+	url : query2,
+	dataType: 'jsonp'
+
+});
+}
+
+
+
+
+
+//per costruire la query devo prendere: anno, mese, giorno di oggi
+//prendo la data
+var currentDate = moment();
+alert(currentDate);
+var anno = currentDate.year();
+var mese = currentDate.month()+1;
+var giorno = currentDate.date();
+alert(anno+" "+mese+" "+giorno);
+
+//devo prendere anno, mese, giorno di 30 giorni fa 
+var lastMonthBegin = currentDate.subtract('days', 30);
+var lastanno = lastMonthBegin.year();
+var lastmese = lastMonthBegin.month()+1;
+var lastgiorno = lastMonthBegin.date();
+//var query = query_dwh+"SELECT%20[Measures].[Energy%20Consumption]%20ON%20COLUMNS,%20Intersect([Time].[Minutes].Members%20,%20([Time].["+lastanno+"].["+lastmese+"].["+lastgiorno+"].[0].[0]:[Time].["+anno+"].["+mese+"].["+giorno+"].[0].[0]))%20ON%20ROWS%20FROM%20[Energy]";
+
+console.log("ready");
+
+var sensori = GetURLParameter("sensors");
+sensoriarray = sensori.split("|");
+
+
+
+//faccio il grafico di default, coè il totale
+doGraph(lastanno, lastmese, lastgiorno, anno, mese, giorno, '');
+
+$('input[type="button"][name="doGraph"]').click(function(){
+	console.log("clicked doGraph");
+	console.log(parseInt($("#month").val())+1);
+	var year = parseInt($("#year").val());
+	var selected_month = parseInt($("#month").val())+1;
+	var end_of_month = moment(year+"-"+selected_month, "YYYY-MM").daysInMonth();
+	
+	console.log(end_of_month);
+	//prenderò sempre il totale
+	doGraph(year, selected_month, 1, year, selected_month, end_of_month);
+});
+
+
+});
+
+function doGraph(anno, mese, giorno, lastanno, lastmese, lastgiorno){
+
+
+	//prendo il totale
+	//la query la costruisco nella funzione
+	query = query_dwh + "SELECT%20[Measures].[Energy%20Consumption]%20ON%20COLUMNS,%20Intersect([Time].[Minutes].Members%20,%20([Time].["+lastanno+"].["+lastmese+"].["+lastgiorno+"].[0].[0]:[Time].["+anno+"].["+mese+"].["+giorno+"].[0].[0]))%20ON%20ROWS%20FROM%20[Energy]";
+
+var time_value_array = new Array();
+$.ajax({
+	url : query,
+	dataType: 'jsonp',
+	error: function(x, t, r){
+		var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+		$("#graficoSensori").append(scritta); 
+	},
+	success:function(data){
+		console.log("oh yeah, what a success");
+		console.log(data);
+		if(typeof data.axes === 'undefined'){
+			var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+			$("#graficoSensori").append(scritta); 
+			return;
+		}
+		num_axes = data.cells.length;
+		alert("numero axes "+num_axes);
+		
+		var now = moment().unix()*1000;
+		
+	 	for(var i=0; i<num_axes; i++){
+			var time_value_obj = new Array();
+			//check date 
+			var date = convertFromStringToUTCDate(data.axes[1].elements[i].name);
+			if(date < now){
+				time_value_obj[0] = date;
+				time_value_obj[1] = round(data.cells[i].value)*2;
+				time_value_array.push(time_value_obj);
+			}
+
+		} 
+	},
+	complete: function(qXHR, textStatus){
+		if(num_axes>0){
+			
+//create the chart 
+			
+			chart = new Highcharts.StockChart ({
+			    chart: {
+			    	renderTo: 'graficoSensori',
+			        alignTicks: false
+			    },
+			    legend: {
+			    	enabled: true
+			    },
+			    title: {
+			        text: 'Potenza per Sensore'
+			    },
+			    rangeSelector: {
+			        buttons: [{
+			            type: 'day',
+			            count: 1,
+			            text: '1d'
+			        }, {
+			            type: 'day',
+			            count: 3,
+			            text: '3d'
+			        },{
+			            type: 'week',
+			            count: 1,
+			            text: '1w'
+			        }, {
+			            type: 'all',
+			            text: 'All'
+			        }],
+			        selected: 1
+			    },
+			    series: [{
+			    	type: 'spline',
+			        name: 'Totale',
+			        data: time_value_array,
+			         dataGrouping: {
+			    	   dateTimeLabelFormats: {
+			    		   day: ['%A, %b %e, %Y', '%A, %b %e', '-%A, %b %e, %Y'],
+			    		   week: ['Week from %A, %b %e, %Y', '%A, %b %e', '-%A, %b %e, %Y'],
+			    		   month: ['%B %Y', '%B', '-%B %Y'],
+			    		   year: ['%Y', '%Y', '-%Y']
+			    	   },
+						units: [[
+						    'day',
+						    [1]
+						],[
+							'week', // unit name
+							[1] // allowed multiples
+						], [
+							'month',
+							[1, 2, 3]
+						]]
+			        } 
+			    }]
+			});
+			
+			//chiamo il metodo addSeries. in un ciclo, tanti quanti sono i singoli sensori 
+			//cambierò solo il nome del sensore 
+			for(var i = 0 ; i < sensoriarray.length; i++){
+				var sens = sensoriarray[i];
+				query_sens =  query_dwh + "SELECT%20[Measures].[Energy%20Consumption]%20ON%20COLUMNS,%20Crossjoin(Intersect([Time].[Minutes].Members%20,%20([Time].["+lastanno+"].["+lastmese+"].["+lastgiorno+"].[0].[0]:[Time].["+anno+"].["+mese+"].["+giorno+"].[0].[0])),[Location].[Edificio 1].[Piano Seminterrato].[ServerFarm].[energy_meter_1].["+sens+"])%20ON%20ROWS%20FROM%20[Energy]";
+				addSeriesToGraph(sens, query_sens);
+			}
+			
+		}
+		else{
+			var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+			$("#graficoSensori").append(scritta); 
+		}
+	}
+});
+}
+
+
+function addSeriesToGraph(name, query){
+
+var time_value_array_sens = new Array();
+
+$.ajax({
+	url : query,
+	dataType: 'jsonp',
+	error: function(x, t, r){
+		var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+		$("#graficoSensori").append(scritta); 
+	},
+	success: function(data){
+		if(typeof data.axes === 'undefined'){
+			var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+			$("#graficoSensori").append(scritta); 
+			return;
+		}
+		num_axes = data.cells.length;
+		alert("numero axes "+num_axes);
+		
+		var now = moment().unix()*1000;
+		
+	 	for(var i=0; i<num_axes; i++){
+			var time_value_obj = new Array();
+			//check date 
+			var date = convertFromStringToUTCDate(data.axes[1].elements[i].name);
+			if(date < now){
+				time_value_obj[0] = date;
+				time_value_obj[1] = round(data.cells[i].value)*2;
+				time_value_array_sens.push(time_value_obj);
+			}
+
+		} 
+	},
+	complete: function(qXHR, textStatus){
+		console.log(time_value_array_sens);
+		console.log('seconda rieschiesta completata');
+	    chart.addSeries({
+			name: name,
+			data: time_value_array_sens
+		});
+	}
+});
+
+
+}
+
+</script>
+
+
+<div id="chart"></div>
+
+
+
+
+
+
+</body>
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+<!-- script highcharts -->
+<script type="text/javascript" src="js/highcharts.js"></script>
+<!-- script highstock -->
+<script type="text/javascript" src="js/highstock.js"></script>
+<!-- script highcharts more -->
+<script type="text/javascript" src="js/highcharts-more.js"></script>
+<!--  Custom theme -->
+<script type="text/javascript" src="js/chart.theme.js"></script>
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+<script type="text/javascript" src="js/chart.theme.js"></script>
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+<!-- justgage -->
+<script type="text/javascript" src="js/justgage.1.0.1.min.js"></script>
+<script type="text/javascript" src="js/raphael.2.1.0.min.js"></script>
+</html>

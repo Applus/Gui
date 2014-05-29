@@ -1,0 +1,159 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script>
+var tz="%2B";
+
+$(document).ready(function() {
+	//check the place from session storage
+	var place = GetURLParameter('place', sessionStorage.getItem('url'));
+	console.log(place);
+	
+//prendo un intervallo di tempo da oggi a 1 mese fa
+	
+	//prendo la data
+	var currentDate_storico = moment();
+	
+	var anno_storico = currentDate_storico.year();
+	var mese_storico = currentDate_storico.month()+1;
+	var giorno_storico = currentDate_storico.date();
+	
+	//devo prendere anno, mese, giorno di 30 giorni fa 
+	var lastMonthBegin_storico = currentDate_storico.subtract('days', 30);
+	var lastanno_storico = lastMonthBegin_storico.year();
+	var lastmese_storico = lastMonthBegin_storico.month()+1;
+	var lastgiorno_storico = lastMonthBegin_storico.date();
+	
+	
+	var time_zone;
+	//time zone
+	time_zone=moment().format("ZZ");
+	time_zone.toString();
+	for(n=1;n<time_zone.length;n++){
+		tz=tz+time_zone[n];
+	}
+	
+	oggi_anno=currentDate_storico.year();
+		
+		var query;
+		
+		var place = GetURLParameter("place", sessionStorage.getItem('url'));
+		
+		if(place=="verres"){
+			query = week_query_ver;
+			query_tmp = week_query_ver;
+		}
+		if(place=="mirafiori"){
+			query = week_query_mir;
+			query_tmp = week_query_mir;
+		}
+	
+	dograficoStorico(lastanno_storico, lastmese_storico, lastgiorno_storico, anno_storico, mese_storico, giorno_storico);
+
+});
+
+function dograficoStorico(lastanno, lastmese, lastgiorno, anno, mese, giorno){
+	
+	var time_value_array = new Array();
+	
+	var num_axes;
+	
+	//devo prendere il parametro totalenergy 
+	var drain = GetURLParameter("totalenergy",sessionStorage.getItem('url'));
+	
+	//construct the query belonging to data parameter 
+	var start= lastanno + "-" + lastmese + "-" + lastgiorno + "T00:00:00" + tz;
+	var end= anno + "-" + mese + "-" + giorno + "T23:59:59" + tz;
+	query_history = query_tmp + drain + "?timeAggregation=DAY&start=" +start + "&end=" + end + "&measureAggregation=SUM";
+	
+	
+	$.ajax({
+		dataType : "jsonp",
+		url : query_history,
+		error : function(x, t, r) {
+			var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+			$("#graficoStorico").empty(); 
+			$("#graficoStorico").append(scritta); 
+		},
+		success : function(data) {
+			time_value_array=parse_time_value_data(data, 1000);
+		},
+		
+		complete : function (qXHR, textStatus){
+			if(time_value_array.length>0){
+				// create the chart 
+				var chart = new Highcharts.StockChart ({
+				    chart: {
+				    	renderTo: 'graficoStorico',
+				        alignTicks: false
+				    },
+
+				    colors : [ '#4DBD33' ],
+				    
+				    title: {
+				        text: 'Daily Consumption (kW·h)'
+				    },
+				    rangeSelector: {
+				        buttons: [{
+				            type: 'day',
+				            count: 3,
+				            text: '3d'
+				        }, {
+				            type: 'week',
+				            count: 1,
+				            text: '1w'
+				        }, {
+				            type: 'all',
+				            text: 'All'
+				        }],
+				    	labelStyle: {
+				    		color: 'silver',
+				    		fontWeight: 'bold'
+				    	},
+				    	inputStyle: {
+				    		color: 'silver'
+				    	},
+				        selected: 2
+				    },
+				    xAxis: {
+		                type: 'datetime',
+		                title: {
+		                    text: null
+		                }
+		            },
+				    series: [{
+				    	type: 'column',
+				        name: 'Daily Consumption',
+				        data: time_value_array,
+				        pointStart: Date.UTC(lastanno, lastmese-1, lastgiorno),
+			            pointInterval: 24*3600*1000,//one day 
+				          dataGrouping: {
+				    	   enabled:false
+				        }  
+				    }]
+				});
+			}
+			
+			else{
+				var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+				$("#graficoStorico").append(scritta); 
+			}
+			
+		}
+	});
+}
+
+</script>
+
+
+
+
+<div id="graficoStorico"></div>

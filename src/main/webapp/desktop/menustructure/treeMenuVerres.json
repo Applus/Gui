@@ -1,0 +1,258 @@
+[
+   {
+      "id":"TE",
+      "name":"Building Total",
+      "description":"Contatore Generale",
+      "children":[
+         {
+            "id":"SC",
+            "name":"Services",
+            "description":"Servizi comuni ISITP e Poli",
+            "children":[
+               {
+                  "id":"CT",
+                  "name":"Central heating system",
+                  "description":"Central heating system",
+                  "drains":[
+                     {
+                        "id":"ELE_SER_CT_PTOT",
+                        "name":"ELE_SER_CT_PTOT",
+                        "description":"Heating system total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_SER_CT_E",
+                        "name":"ELE_SER_CT_E",
+                        "description":"Heating system total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               },
+               {
+                  "id":"CF",
+                  "name":"Central cooling system",
+                  "description":"Central cooling system",
+                  "drains":[
+                     {
+                        "id":"ELE_SER_CF_PTOT",
+                        "name":"ELE_SER_CF_PTOT",
+                        "description":"Cooling system total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_SER_CF_E",
+                        "name":"ELE_SER_CF_E",
+                        "description":"Cooling system total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               },
+               {
+                  "id":"UTA-Gen",
+                  "name":"Air handling units",
+                  "description":"Air handling units",
+                  "drains":[
+                     {
+                        "id":"ELE_UTA_GEN_PTOT",
+                        "name":"ELE_UTA_GEN_PTOT",
+                        "description":"Air handling unit total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_UTA_7_PTOT",
+                        "name":"AHU 7",
+                        "description":"Air handling unit 7 power",
+                        "total":false,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_UTA_9_PTOT",
+                        "name":"AHU 9",
+                        "description":"Air handling unit 9 power",
+                        "total":false,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_UTA_GEN_E",
+                        "name":"ELE_UTA_GEN_E",
+                        "description":"Air handling unit total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     },
+                     {
+                        "id":"ELE_UTA_7_E",
+                        "name":"AHU 7",
+                        "description":"Air handling unit 7 energy",
+                        "total":false,
+                        "type":"ActiveEnergy"
+                     },
+                     {
+                        "id":"ELE_UTA_9_E",
+                        "name":"AHU 9",
+                        "description":"Air handling unit 9 energy",
+                        "total":false,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               }
+            ]
+         },
+         {
+            "id":"UFFP",
+            "name":"Poly Offices",
+            "description":"Poly Offices",
+            "children":[
+               {
+                  "id":"AD-Poli",
+                  "name":"Admin and PhD Office",
+                  "description":"Admin and PhD Office",
+                  "drains":[
+                     {
+                        "id":"ELE_UFF_PTOT",
+                        "name":"ELE_UFF_PTOT",
+                        "description":"Poly Offices total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_UFF_ETOT_E",
+                        "name":"ELE_UFF_ETOT_E",
+                        "description":"Poly Offices total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               }
+            ]
+         },
+         {
+            "id":"P2-3-ISITP",
+            "name":"ISITP: 2nd and 3rd floor",
+            "description":"Second and third floor ISITP",
+            "children":[
+               {
+                  "id":"CAD",
+                  "name":"CAD Lab",
+                  "description":"CAD Lab ISITP",
+                  "drains":[
+                     {
+                        "id":"ELE_1BS_CAD_FMTOT_PTOT",
+                        "name":"ELE_1BS_CAD_FMTOT_PTOT",
+                        "description":"Laboratory CAD total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_1BS_CAD_FMTOT_E",
+                        "name":"ELE_1BS_CAD_FMTOT_E",
+                        "description":"Laboratory CAD total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               },
+               {
+                  "id":"INF",
+                  "name":"Computer Lab",
+                  "description":"Computer Lab ISITP",
+                  "drains":[
+                     {
+                        "id":"ELE_INF_PTOT",
+                        "name":"ELE_INF_PTOT",
+                        "description":"Computer Lab ISITP total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_INF_LUCE_PTOT",
+                        "name":"Light",
+                        "description":"Computer Lab ISITP Light power",
+                        "total":false,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_INF_FMTOT_PTOT",
+                        "name":"Motive power",
+                        "description":"Computer Lab ISITP FM power",
+                        "total":false,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_INF_ETOT_E",
+                        "name":"ELE_INF_ETOT_E",
+                        "description":"Computer Lab ISITP total",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               }
+            ],
+            "drains":[
+               {
+                  "id":"ELE_1BS_GEN_PTOT",
+                  "name":"ELE_1BS_GEN_PTOT",
+                  "description":"Second and third floor ISITP power",
+                  "total":true,
+                  "type":"ActivePower"
+               },
+               {
+                  "id":"ELE_1BS_GEN_E",
+                  "name":"ELE_1BS_GEN_E",
+                  "description":"Second and third floor ISITP general",
+                  "total":true,
+                  "type":"ActiveEnergy"
+               }
+            ]
+         },
+         {
+            "id":"AV",
+            "name":"Other",
+            "description":"Portable test unit",
+            "children":[
+               {
+                  "id":"VAL",
+                  "name":"Portable test unit",
+                  "description":"Portable test unit",
+                  "drains":[
+                     {
+                        "id":"ELE_VAL_GEN_PTOT",
+                        "name":"ELE_VAL_GEN_PTOT",
+                        "description":"Portable test unit total power",
+                        "total":true,
+                        "type":"ActivePower"
+                     },
+                     {
+                        "id":"ELE_VAL_GEN_E",
+                        "name":"ELE_VAL_GEN_E",
+                        "description":"Portable test unit total energy",
+                        "total":true,
+                        "type":"ActiveEnergy"
+                     }
+                  ]
+               }
+            ]
+         }
+      ],
+      "drains":[
+         {
+            "id":"ELE_SER_TR1_E",
+            "name":"ELE_SER_TR1_E",
+            "description":"transformer 1 energy",
+            "total":true,
+            "type":"ActiveEnergy"
+         },
+         {
+            "id":"ELE_SER_TR1_PTOT",
+            "name":"ELE_SER_TR1_PTOT",
+            "description":"transformer 1 power",
+            "total":true,
+            "type":"ActivePower"
+         }
+      ]
+   }
+]

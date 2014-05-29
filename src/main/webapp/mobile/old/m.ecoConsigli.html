@@ -1,0 +1,58 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+var timer;
+	$().ready(function(){
+		$("#1").show();
+		$("#2").hide();
+		$("#3").hide();
+		$("#4").hide();
+		$("#5").hide();
+		var i = 1;
+		timer = setInterval(function(){
+			//alert("timer");
+			$("#"+i).hide();
+			if(i==5){
+				i=0;
+			}
+			//$("#"+(i+1)).effect( "slide", "slow" );
+			$("#"+(i+1)).show();
+			i++;
+		},7000);
+	});
+</script>
+
+<!-- qui sarebbe carina una rotazione di consigli diversi. con un timer cambia il contenuto
+e/o l'immagine 
+per gli effetti uso jquery ui
+-->
+<div id="eco_consigli">
+
+<img src="img/lampadina.png" alt="immagine" id="immagine"/>
+
+<div class="testo_consiglio" id="1">
+	Ridurre di appena un grado la temperatura di una stanza pu&ograve; gi&agrave; assicurare un risparmio energetico del 6%!
+</div>
+<div class="testo_consiglio" id="2">
+	Durante il giorno evitare di lasciare finestre e porte aperte, in caso di necessit&agrave; preferire le ore pi&ugrave; calde della giornata!
+</div>
+<div class="testo_consiglio" id="3">
+	Utilizzare sempre lampadine a risparmio energetico!
+</div>
+<div class="testo_consiglio" id="4">
+	Durante la pulizia dei denti o delle mani tenere il rubinetto aperto solamente quando necessario!
+</div>
+<div class="testo_consiglio" id="5">
+	Scollegare sempre gli apparecchi elettronici non utilizzati, perch&eacute; lo standby consuma tanta energia elettrica per nulla!
+</div>
+
+</div>

@@ -1,0 +1,480 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript" src="js/getFirstDate.js"> </script>
+<script type="text/javascript" src="js/month.js"> </script>
+<script type="text/javascript" src="js/sensorname.js"> </script>
+<script type="text/javascript" src="js/general.js"> </script>
+<script >
+var num_axes=0;
+var chart_sens;
+var sensoriarray;
+var current_hour;
+var factor;
+var point_interval;
+
+var primo_anno;
+var oggi_anno;
+var query_tmp;
+var tz="%2B";
+
+
+$(document).ready(function() {
+	
+	var time_zone;
+	//time zone
+	time_zone=moment().format("ZZ");
+	time_zone.toString();
+	
+	for(n=1;n<time_zone.length;n++){
+		tz=tz+time_zone[n];
+	}
+	
+	if(place=="verres"){
+		query = week_query_ver;
+		query_tmp = week_query_ver;
+	}
+	if(place=="mirafiori"){
+		query = week_query_mir;
+		query_tmp = week_query_mir;
+	}
+	
+	//prendo i sensori di energia dall'url 
+	var sensori = GetURLParameter("energy");
+	sensoriarray = sensori.split("|");
+	
+	//prendo la data
+	var currentDate = moment();
+	
+	var anno = currentDate.year();
+	var mese = currentDate.month()+1;
+	var giorno = currentDate.date();
+	//prendo anche l'ora corrente
+	current_hour = currentDate.hour();
+
+	//devo prendere anno, mese, giorno di 14 giorni fa 
+	var lastMonthBegin = currentDate.subtract('days', 14);
+	var lastanno = lastMonthBegin.format("YYYY");
+	var lastmese = lastMonthBegin.format("MM");
+	var lastgiorno = lastMonthBegin.format("DD");
+	var interval=60;
+	//con interval controllo se voglio la query sull'ora o sulla mezzora
+	
+	doGraph(lastanno, lastmese, lastgiorno, anno, mese, giorno, interval);
+	
+	$('button[name="doGraph"]').click(function(){
+		
+		//se il mese selezionato è uguale al mese corrente, interval ==30 se voglio il dato ogni mezz'ora
+		var interval;
+		if(selected_month == mese){
+			interval=60;
+		}
+		
+		var year = parseInt($("#year").val());
+		var selected_month = parseInt($("#month").val());
+		var first;
+		var first_m;
+		var days;
+		
+		var end_of_month = moment(year+"-"+selected_month, "YYYY-MM").daysInMonth();
+		
+		var next_end_of_month = moment(year+"-"+selected_month+"-"+end_of_month, "YYYY-MM-DD").add('days', 1);
+		//devo prendere mese, anno, e giorno
+		var next_year = next_end_of_month.year();
+		var next_month = next_end_of_month.month()+1;
+		var next_day = 1 ; //è sempre uno, è l'inizio di un nuovo mese!
+		
+		$.ajax({
+			url : query,
+			dataType : "jsonp",
+			success : function(data) {
+				//get year value
+				first = data.start.split("-")[0];
+				first_m = data.start.split("-")[1];		
+				days = (data.start.split("-")[2]).split("T")[0];
+				console.log("ECCO DAYS -->");
+				console.log(days);
+			},
+			complete : function(data) {
+				if(year==first&&selected_month==first_m){
+					doGraph(year, selected_month, days , next_year, next_month, 1, interval);
+				}
+				else{
+					doGraph(year, selected_month, 1, next_year, next_month, 1, interval);
+				}
+			}
+		});
+		
+		
+
+	});
+	
+	
+	//gestione select 
+	var first_year = 0;
+	var fisrt_month=0;
+	var last_month = 0;
+	var selectedYear;
+	var query = query + "time";
+	
+	$.ajax({
+		url : query,
+		dataType : "jsonp",
+		error : function(x, t, r) {
+			 console.log(x.response.message); 
+		},
+		success : function(data) {
+			//get year value
+			first_year = data.start.split("-")[0];
+			primo_anno = first_year;
+			oggi_anno= data.end.split("-")[0];
+			console.log("first_year");
+			console.log(first_year);
+			
+		},
+		complete : function() {
+			//aggiungo alla select year i valori degli anni, dall'inizio ad oggi
+			for(var i=0; i<=(anno-first_year); i++){
+				
+				//creo elemento option
+				var opt = $("<option>");
+				var attr = parseInt(first_year)+parseInt(i);
+				opt.attr('value', attr);
+				opt.text(attr);
+				
+				//aggiungo alla select
+				$("#year").append(opt);
+				
+				
+			}
+			selectedYear = $('#year option:first').text();
+			$.ajax({
+				url: query,
+				dataType:'jsonp',
+				error: function(x, t, r){
+					
+				},
+				success: function(data){
+					//get year value
+					first_month = data.start.split("-")[1];
+					
+				},
+				
+				complete: function(){
+					
+					//adesso deve chiedere last month
+					$.ajax({
+						url: query,
+						dataType:'jsonp',
+						error: function(x, t, r){
+							
+						},
+						success: function(data){
+							
+							last_month = data.end.split("-")[1];
+							
+							if(selectedYear==anno&&last_month>=mese){
+								last_month=mese;
+							}
+							
+						},
+						
+						complete: function(){
+							
+							//adesso devo riempire la select
+							
+							for(var i=0; i<=(12-first_month); i++){
+								
+								//creo elemento option
+								var opt = $("<option>");
+								var attr = parseInt(first_month)+parseInt(i);
+								opt.attr('value', attr);
+								opt.text(name_of_month[attr-1]);
+								
+								//aggiungo alla select
+								$("#month").append(opt);
+							}
+							
+						}
+					});
+				}
+			});
+		}
+	});
+	
+	
+	
+	$('#year').change(function() {
+		selectedYear = $('#year').find(":selected").text();
+		//svuoto select dei mesi
+		$('#month').empty();
+		
+		if(selectedYear==primo_anno){
+			$.ajax({
+				url: query,
+				dataType:'jsonp',
+				error: function(x, t, r){
+					 console.log(x.response.message); 
+				},
+				success: function(data){
+					first_month = data.start.split("-")[1];
+				},
+				complete: function(){
+					//adesso devo riempire la select
+					for(var i=0; i<=(12-first_month); i++){ //modificato 12 con last_month_storico
+						//creo elemento option
+						var opt_storico2 = $("<option>");
+						var attr_storico2 = parseInt(first_month)+parseInt(i);
+						opt_storico2.attr('value', attr_storico2);
+						opt_storico2.text(name_of_month[attr_storico2-1]);
+						//aggiungo alla select
+						$("#month").append(opt_storico2);
+					}
+					
+				}
+			});
+		}
+		else if(selectedYear==oggi_anno){
+			$.ajax({
+				url: query,
+				dataType:'jsonp',
+				error: function(x, t, r){
+					 console.log(x.response.message); 
+				},
+				success: function(data){
+					first_month = data.end.split("-")[1];
+				},
+				complete: function(){
+					//adesso devo riempire la select
+					for(var i=0; i<(first_month); i++){ //modificato 12 con last_month_storico
+						//creo elemento option
+						var opt_storico2 = $("<option>");
+						var attr_storico2 = parseInt(i);
+						opt_storico2.attr('value', attr_storico2+1);
+						opt_storico2.text(name_of_month[attr_storico2]);
+						//aggiungo alla select
+						$("#month").append(opt_storico2);
+					}
+					
+				}
+			});
+		}
+		else{
+			for(var i=0; i<=12; i++){ //modificato 12 con last_month_storico
+				//creo elemento option
+				var opt_storico2 = $("<option>");
+				var attr_storico2 = parseInt(i);
+				opt_storico2.attr('value', attr_storico2+1);
+				opt_storico2.text(name_of_month[attr_storico2]);
+				//aggiungo alla select
+				$("#month").append(opt_storico2);
+			}
+		}
+		
+		
+	
+	});
+});
+
+function doGraph(lastanno, lastmese, lastgiorno, anno, mese, giorno, interval){
+
+	
+	$("#graficoSensori").text("Loading data...");
+	
+	//construisco la query del totale
+	var tot_sen = GetURLParameter("totalenergy");
+	var query_tot;
+		//query sull'ora
+		var start= lastanno + "-" + lastmese + "-" + lastgiorno + "T00:00:00" + tz;
+		var end= anno + "-" + mese + "-" + giorno + "T23:59:59" + tz;
+		query_tot = query_tmp + tot_sen + "?timeAggregation=HOUR&start=" +start + "&end=" + end;
+		
+		factor=1;
+		point_interval = 1 * 3600 * 1000; //one hour
+
+	
+	var time_value_array_tot = new Array();
+	
+	//query totale
+	$.ajax({
+	url : query_tot,
+	dataType: 'jsonp',
+	error: function(x, t, r){
+		var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+		$("#graficoSensori").empty();
+		$("#graficoSensori").append(scritta); 
+		console.log("Errore");
+	},
+	success:function(data){
+		console.log("oh yeah, what a success");
+		if(typeof data.measures === 'undefined'){
+			var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+			$("#graficoSensori").empty();
+			$("#graficoSensori").append(scritta); 
+			return;
+		}
+		time_value_array_tot = parse_time_value_data(data, 1000, factor);
+		console.log("si vede: ");
+		console.log(time_value_array_tot);
+	},
+	complete: function (qXHR, textStatus) {
+		//creo il grafico 
+		$("#graficoSensori").empty();
+		chart_sen = new Highcharts.StockChart({
+			chart: {
+		    	renderTo: 'graficoSensori',
+		        alignTicks: false
+		    },
+		    colors: [
+		             '#2f7ed8', 
+		             '#CC1100', 
+		             '#8bbc21', 
+		             '#910000', 
+		             '#1aadce', 
+		             '#492970',
+		             '#f28f43', 
+		             '#77a1e5', 
+		             '#c42525', 
+		             '#a6c96a'
+		          ],
+		    legend: {
+		    	enabled: true,
+		    	align:"right",
+		    	verticalAlign:"middle",
+		    	layout:"vertical"
+		    },
+		    title: {
+		        text: 'Average power per sensor (kW)'
+		    },
+		    rangeSelector: {
+		        buttons: [{
+		            type: 'day',
+		            count: 1,
+		            text: '1d'
+		        }, {
+		            type: 'day',
+		            count: 3,
+		            text: '3d'
+		        },{
+		            type: 'week',
+		            count: 1,
+		            text: '1w'
+		        }, {
+		            type: 'all',
+		            text: 'All'
+		        }],
+		    	labelStyle: {
+		    		color: 'silver',
+		    		fontWeight: 'bold'
+		    	},
+		    	inputStyle: {
+		    		color: 'silver'
+		    	},
+		        selected: 1
+		    },
+		    xAxis: {
+                type: 'datetime',
+                title: {
+                    text: null
+                }
+            },
+		    series: [{
+		    	type: 'spline',
+		        name: 'Total',
+		        data: time_value_array_tot,
+		         dataGrouping: {
+		    	   enabled: false
+		        } 
+		    }],
+		    yAxis : {
+		    	min : 0
+		    }
+		});
+		
+		//uso closure function altrimenti i risultati delle richieste ajax accodate si sovrascrivono
+		var result = [];
+		var sens;
+		var i; 
+ 		if(sensoriarray.length>1){
+			for (i = 0; i < sensoriarray.length; i++){
+				
+			  (function(i)
+				 {
+				  var time_value_array = new Array();
+					sens = sensoriarray[i];
+					
+						var start= lastanno + "-" + lastmese + "-" + lastgiorno + "T00:00:00" + tz;
+						var end= anno + "-" + mese + "-" + giorno + "T23:59:59" + tz;
+
+						query_sens = query_tmp + sens + "?timeAggregation=HOUR&start=" +start + "&end=" + end;
+					
+						factor=1;
+						point_interval = 1* 3600 * 1000; //one_hour
+
+			     $.ajax({
+			          url: query_sens,
+			          dataType:'jsonp',
+			          success: function(data) {
+			        	  if(typeof data === 'undefined'){
+			      			var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+			      			$("#graficoSensori").append(scritta); 
+			      			return;
+			      		}
+			      		time_value_array = parse_time_value_data(data, 1000);
+			      		
+			          },
+			          complete: function (a, b){
+			        	  var nome = sensorname[sensoriarray[i]];
+			        	  result[i]=time_value_array;
+			        	  chart_sen.addSeries({
+			      			name: nome,
+			      			pointStart: Date.UTC(lastanno, lastmese-1, lastgiorno),
+			 	            pointInterval: point_interval, // half hour
+			      			data: result[i]
+			      		});
+			          }
+			        });  
+			    })(i); 
+			}
+		} 
+		
+		
+	}
+});
+}
+
+
+</script>
+
+<div id="graficoSensoriContenitore">
+<div id="formGrafico">
+
+<p> Create a graph </p>
+	<form id="formMese">
+	
+	<p>Year <select id="year" class="styled_select"></select></p>
+	<p> Month <select id="month" class="styled_select"></select></p>
+	
+	
+	<button name="doGraph"> Go </button>
+</form>
+
+<div id="specialinfo">
+	
+	
+</div>
+</div> 
+
+
+<div id="graficoSensori"></div>
+<div id="potenzamediainfo">NB. The average power is obtained on the basis of 30 minute intervals.</div>
+</div>
+

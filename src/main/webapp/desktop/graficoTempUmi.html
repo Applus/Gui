@@ -1,0 +1,303 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+	var chart;
+	var last_month;
+	var last_day;
+	var last_year;
+	//devo prendere l'ora attuale 
+	var today = moment();
+	var year = today.year();
+	var month = today.month()+1;
+	var day = today.date();
+	var hour = (today.subtract('hour', 1)).hour();
+	console.log(month+" "+ day + " " + hour);
+	
+	var temp_values =[];
+	var umi_values = [];
+	//prendo le 24 ore precedenti 
+	//devo sapere anche mese e anno 
+	
+	//se sono a mezzanotte, non devo cambiare giorno precedente (cioè le 23 di hour dato che ho sottratto 1)
+	var last_hour;
+	if(hour == 23){
+		last_day = day;
+		last_month = month;
+		last_year= year;
+		console.log(month+" "+ day + " " + hour);
+		last_hour = moment().subtract('hour', 23).hour();
+		console.log(last_month+" "+ last_day + " " + last_hour);
+		
+	}
+	else{
+		var last = moment().subtract('hour', 23);
+		last_day = last.date();
+		last_month=last.month()+1;
+		last_year=last.year();
+		last_hour = last.hour();
+	}
+	
+	//time zone
+	var time_zone=moment().format("ZZ");
+	time_zone.toString();
+	var tz="%2B";
+	for(n=1;n<time_zone.length;n++){
+		tz=tz+time_zone[n];
+	}
+	
+	/*IERI*/
+	var yesterday=moment().subtract('days', 1).format("YYYY-MM-DDTHH:mm:ss");
+	yesterday=yesterday+tz;
+	
+	
+	//devo prendere i nomi dei drain per temperatura ed umidità
+	var draint = GetURLParameter('Temperature');
+	var drainu = GetURLParameter('RelativeHumidity');
+	
+	//costruisco le due query
+	var query_temp = week_query_mir + draint + "?start=" + yesterday + "&timeAggregation=HOUR";
+	var query_umi =  week_query_mir + drainu + "?start=" + yesterday + "&timeAggregation=HOUR";
+	
+	//chiamata ajax per la query
+	$.ajax({
+		url : query_temp,
+		type : "GET",
+		dataType : "jsonp",
+		async : false,
+		success : function(data) {
+			console.log("ajax success");
+			//devo salvare i dati nel vettore
+			var count = data.measures.length;
+			console.log(count);
+			for ( var i = 0; i < count; i++) {
+				if(data.measures[i].value!=null){
+					var time = moment(data.measures[i].time);
+					var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+					var obj = new Array();
+					obj[0]=date;
+					obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+					
+					temp_values[i] = obj;
+				}
+				else{
+					temp_values[i]=null;
+				}
+				
+			}
+		},
+		error : function(xhr, ajaxOptions, thrownErrorxhr){
+			console.log(xhr.status);
+			console.log(thrownErrorxhr.message);
+		},
+		complete: function(){
+			$.ajax({
+				url : query_umi,
+				type : "GET",
+				dataType : "jsonp",
+				async : false,
+				success : function(data) {
+					var count = data.measures.length;
+					for ( var i = 0; i < count; i++) {
+						if(data.measures[i].value!=null){
+							var time = moment(data.measures[i].time);
+							var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+							var obj = new Array();
+							obj[0]=date;
+							obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+							
+							umi_values[i] = obj;
+						}
+						else{
+							umi_values[i] = null;
+						}
+					}
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					point_interval = 3600 * 1000; //one hour 
+					chart = new Highcharts.Chart({
+				         chart: {
+				             renderTo: 'grafico_tu'
+				         },
+				         title: {
+				             text: 'Temperature and Relative Humidity'
+				         },
+				         subtitle: {
+				             text: 'Last 24 hours'
+				         },
+				         xAxis: {
+			                type: 'datetime',
+			                title: {
+			                    text: null
+			                }
+			            },
+				         yAxis: [{ // Primary yAxis
+				             labels: {
+				                 formatter: function() {
+				                     return this.value +'°C';
+				                 },
+				                 style: {
+				                     color: '#f5991a'
+				                 }
+				             },
+				             title: {
+				                 text: 'Temperature',
+				                 style: {
+				                     color: '#f5991a'
+				                 }
+				             }
+				           
+				         }, { // Secondary yAxis
+				             //gridLineWidth: 0,
+				             title: {
+				                 text: 'Relative Humidity',
+				                 style: {
+				                     color: '#4572A7'
+				                 }
+				             },
+				             labels: {
+				                 formatter: function() {
+				                     return this.value +' %';
+				                 },
+				                 style: {
+				                     color: '#4572A7'
+				                 }
+				             },
+				             opposite: true
+				 
+				         }],
+				         tooltip: {
+				             shared: true
+				         },
+				         legend: {
+				             layout: 'vertical',
+				             align: 'right',
+				             verticalAlign: 'top'
+				         },
+				         series: [{
+				             name: 'Temperature',
+				             color: '#f5991a',
+				             type: 'spline',
+				             yAxis: 0,
+				             data: temp_values,
+				             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+					         pointInterval: point_interval, 
+				             tooltip: {
+				                 valueSuffix: ' °C'
+				             }
+				 
+				         }, {
+				             name: 'Relative Humidity',
+				             type: 'spline',
+				             color: '#4572A7',
+				             yAxis: 1,
+				             data: umi_values,
+				             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+					         pointInterval: point_interval, 
+				             dashStyle: 'shortdot',
+				             tooltip: {
+				                 valueSuffix: ' %'
+				             }
+				 
+				         }]
+				     });
+					
+				}
+			});
+		}
+	});
+	
+	setInterval(function(){
+
+		var point_t;
+		var point_umi;
+		//prendo data e ora attuale
+		var actual_date = moment();
+		var current_hour = (actual_date.subtract('hour', 1)).hour();
+		
+
+		if(current_hour > hour || (current_hour == 0 && hour != 0)){
+			//è passata l'ora
+			hour = current_hour;
+			//costruisco le due query
+			query_temp = week_query_mir + draint + "?start=" + yesterday + "&timeAggregation=HOUR";
+			query_umi =  week_query_mir + drainu + "?start=" + yesterday + "&timeAggregation=HOUR";
+		
+			
+			//aggiorno il grafico
+			$.ajax({
+				url : query_temp,
+				type : "GET",
+				dataType : "jsonp",
+				async : false,
+				success : function(data) {
+					
+					var count = data.measures.length;
+					
+					for ( var i = 0; i < count; i++) {
+						point_t = roundtwo(data.measures[i].value);
+					}
+					
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					
+					$.ajax({
+						url : query_umi,
+						type : "GET",
+						dataType : "jsonp",
+						async : false,
+						success : function(data) {
+							
+							var count = data.measures.length;
+						
+							for ( var i = 0; i < count; i++) {
+								point_umi = roundtwo(data.measures[i].value);
+							}
+							
+						},
+						error : function(xhr, ajaxOptions, thrownErrorxhr){
+							console.log(xhr.status);
+							console.log(thrownErrorxhr.message);
+						},
+						complete: function(){
+							
+							chart.series[0].addPoint(point_t, true, true);
+							chart.series[1].addPoint(point_umi, true, true);
+							
+						}
+					});
+				}
+			});
+		}
+	 
+	}, 10 * 3600 * 1000);
+	
+
+	
+});
+
+</script>
+
+<div class="grafico_tempumi">
+
+	<div id="grafico_tu"></div>
+	
+</div>

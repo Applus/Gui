@@ -1,0 +1,156 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width">
+
+
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+
+
+<!-- css template  -->
+<link rel="stylesheet" type="text/css" href="css/style.css"> 
+
+
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+<!-- justgage -->
+<script type="text/javascript" src="js/justgage.1.0.1.min.js"></script>
+<script type="text/javascript" src="js/raphael.2.1.0.min.js"></script>
+
+
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+<script type="text/javascript" src="js/highstock.js"></script>
+
+<!--  Custom theme -->
+<script type="text/javascript" src="js/chart.theme.js"></script>
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+
+
+<script type="text/javascript">
+	var smart = false;
+	var div_height;
+	function loadcss(url) {
+		var head = document.getElementsByTagName('head')[0], link = document
+				.createElement('link');
+		link.type = 'text/css';
+		link.rel = 'stylesheet';
+		link.href = url;
+		head.appendChild(link);
+		return link;
+	}
+
+	var height = screen.height;
+	var width = screen.width;
+
+	 if (width == 1280 && height == 720) {
+		loadcss('css/smartstyle.css');
+		smart = true;
+	} else {
+		loadcss('css/style.css');
+		smart = false;
+	} 
+</script>
+
+
+<title>Applus Energie</title>
+</head>
+<body style="background-color: black;">
+
+	<!-- aggiungo il pannello di navigazione -->
+	<!-- se sono mirafiori, nascondo il pannello -->
+	<script>
+	$(document).ready(function(){
+		var place=GetURLParameter('place');
+		if(place=='mirafiori'){
+			$(".intestazione").prepend($("<button>").attr('id','home').text('Back to Home'));
+			$("#panelbutton").remove();
+			$("#home").click(function(){
+				window.location="index_mirafiori.html";
+			});
+			
+		}
+		else if(place=='verres'){
+			
+		}
+		
+		
+	});
+		
+	</script>
+	<div class="pannello">
+		<div ng-include src="'navigationmenu.html'"></div>
+	</div>
+
+	<!-- racchiudo tutto in un div application -->
+
+	<div class="application">
+		<div class="intestazione">
+
+			<!-- aggiungo il bottone per aprire il pannello di navigazione  -->
+			<button id="panelbutton">>></button>
+			
+			<div ng-include src="'refreshbutton.html'"></div>
+
+
+			<div ng-include src="'nomeAula.html'"></div>
+			<div ng-include src="'data.html'"></div>
+			<div id="dashboardbutton" ng-include></div>
+			<script>
+				if (smart == false) {
+					var name= GetURLParameter("name");
+					var totalenergy = GetURLParameter("totalenergy");
+					var totalpower = GetURLParameter("totalpower");
+					var energy = GetURLParameter("energy");
+					var power = GetURLParameter("power");
+					var place = GetURLParameter("place");
+				
+					$("#dashboardbutton").attr('src', "'dashboardbutton.html?name="+name+"&totalpower="+totalpower+"&totalenergy="+totalenergy+"&power="+power+"&energy="+energy+"&place="+place+"'");
+				}
+			</script>
+		</div>
+
+
+		<div class="container_1">
+			<div ng-include src="'graficoSensori.html'"></div>
+			<div ng-include src="'graficoIstantaneo.html'"></div>
+			
+		</div>
+
+		<div class="container_2">
+			<div ng-include src="'graficoStorico.html'"></div>
+		</div>
+		<div class="container_3">
+			<div id="right_bottom_content" ng-include src="'consumiIstantaneiSensori.html'" ></div>
+			
+		</div>
+	</div>
+
+</body>
+
+
+
+
+
+
+</html>

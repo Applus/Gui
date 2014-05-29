@@ -1,0 +1,76 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+
+</script>
+</head>
+<body>
+
+<div id="votazioni_pag" data-role="page" data-theme="a" data-direction="reverse" data-add-back-btn="true" data-back-btn-text="Back" style="background-color:rgb(73, 73, 73);">
+
+	<div data-role="header" style="margin-bottom:20px;">
+		<p class="titolo" align="center"> Verrès </p>	
+		<p class="sottotitolo" align="center"> Current view: </p>
+		  <a href="#navigation-panel-verres-clim" data-theme="d" data-icon="grid" data-iconpos="notext" data-shadow="false" data-iconshadow="false" class="ui-icon-nodisc ui-btn-right"><img src="img/menuicon.png"/></a> 
+	</div> 
+	
+	<div id="max_cont" style="width:98%; height:700px; background-color:#2d2d2d; border-radius: 10px; margin:0 auto; margin-bottom:15px;">
+		<div id="title_votazioni" style="font-size:large"> Indicators Evaluations ( last hour )</div>
+		<div class="meta" style="height:50%; padding-right:150px;">
+			<div class="contenitore" style="width:40%; text-align:center; float:left; vertical-align:middle;">
+				<img class="logov" src="img/logo-temp.jpg" alt="logo_temp" style="width:10%; height:40%; vertical-align:middle; margin-right: -300px;"/>
+					<div class="pandelg" style="float:right; width:80%;">
+					<div id="subtitle" style="font-weight:bold;"> Temperature</div>
+						<canvas id="temp"></canvas>
+						<div id="gauge_description_TEMP">
+						<div class="gauge_left">COLD</div><div class="gauge_right">HOT</div>
+					</div>
+					</div>
+			</div>
+			<div class="contenitore" style="width:40%; text-align:center; float:right; vertical-align:middle;">
+				<img class="logo_votazioni" src="img/logo-umi.jpg" alt="logo_umi" style="width:10%; height:40%; vertical-align:middle; margin-right: -300px;"/>
+					<div class="pandelg" style="float:right; width:80%;">
+					<div id="subtitle" style="font-weight:bold;"> Humidity</div>
+						<canvas id="hum"></canvas>
+						<div id="gauge_description_HUM">
+						<div class="gauge_left">DRY</div><div class="gauge_right">WET</div>
+					</div>
+					</div>
+			</div>
+		</div>
+		<div class=meta style="height:50%; padding-right:150px;">
+			<div class="contenitore" style="width:40%; text-align:center; vertical-align:middle; margin:0 auto; ">
+				 <img class="logo_votazioni" src="img/logo-co2.jpg" alt="logo_co2" style="width:10%; height:40%; vertical-align:middle; margin-right: -300px;" />
+					<div class="pandelg" style="float:right; width:80%; height:">
+					<div id="subtitle" style="font-weight:bold;"> Air quality</div>
+						<canvas id="air"></canvas>
+						<div id="gauge_description_AIR">
+						<div class="gauge_left">FOUL</div><div class="gauge_right">FRESH</div>
+					</div>
+					</div>
+			</div>
+		</div>
+		
+	</div>
+	<div>
+		<ul data-role="listview" data-inset="true">
+			<li id="vote"><a data-theme="a" > Give your opinion </a></li>
+		</ul>
+	</div>
+	
+	
+	</div>
+</body>
+</html>

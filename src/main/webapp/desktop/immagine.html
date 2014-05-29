@@ -1,0 +1,41 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+var h; 
+var padding_top;
+var div_h;
+	$().ready(function(){
+		//l'altezza del div la prendo programmaticamente
+		
+		div_h = $("#div_immagine").height();
+		$("#foto").load(function() {
+	       	h = $(this).height();
+	       	padding_top = (div_h-h)/2;
+	       	console.log(padding_top);
+	       	$("#foto").css('padding-top', padding_top);
+	    });
+		
+		//se è verres carico uno foto, altrimenti carico un altra
+		var place = GetURLParameter('place');
+		if(place=="verres"){
+			$("#foto").attr('src','img/totaleedificio.jpg');
+		}
+		else if(place=="mirafiori"){
+			$("#foto").attr('src','img/mirafiori_small.jpeg');
+		}
+		
+	});
+</script>
+
+<div id="div_immagine">
+	<img id="foto" src="" alt="foto descrittiva"/>
+</div>

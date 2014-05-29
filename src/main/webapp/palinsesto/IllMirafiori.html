@@ -1,0 +1,212 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<div class="palinsesto">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/moment.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/charts.theme.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function () {
+	var chart;
+	var last_month;
+	var last_day;
+	var last_year;
+	//devo prendere l'ora attuale 
+	var today = moment();
+	var year = today.year();
+	var month = today.month()+1;
+	var day = today.date();
+	var hour = (today.subtract('hour', 1)).hour();
+	console.log(month+" "+ day + " " + hour);
+	
+	var point_interval = 3600 * 1000; //one hour 
+	
+	var ill_values=[];
+	
+	//prendo le 24 ore precedenti 
+	//devo sapere anche mese e anno 
+	
+	//se sono a mezzanotte, non devo cambiare giorno precedente (cioè le 23 di hour dato che ho sottratto 1)
+	var last_hour;
+	if(hour == 23){
+		console.log("ahoooo");
+		last_day = day;
+		last_month = month;
+		last_year= year;
+		console.log(month+" "+ day + " " + hour);
+		last_hour = moment().subtract('hour', 23).hour();
+		console.log(last_month+" "+ last_day + " " + last_hour);
+		
+	}
+	else{
+		var last = moment().subtract('hour', 23);
+		last_day = last.date();
+		last_month=last.month()+1;
+		last_year=last.year();
+		last_hour = last.hour();
+	}
+
+	console.log(last_hour);	
+	
+	//devo fare query mdx per avere valore illuminance dal cubo climatic
+	//devo prendere il parametro dall'url
+	var drain = "MIR_HVAC_STU_GEN_LUM"
+	var mirafiori_query_dwh = "https://mirafiori.applus.polito.it/JeerpDa/bi/mdx?q=";
+	console.log(drain);
+	
+	var query_ill = build_interval_query_climatic(mirafiori_query_dwh, 'Illuminance', drain, last_year, last_month, last_day, last_hour, year, month, day, hour);
+
+	console.log(query_ill);
+	
+	//chiamata ajax per la query
+	$.ajax({
+		url : query_ill,
+		type : "GET",
+		dataType : "jsonp",
+		async : false,
+		success : function(data) {
+			console.log("ajax success");
+			var count = data.cells.length;
+			console.log(count);
+			for ( var i = 0; i < count; i++) {
+				ill_values[i] = roundtwo(data.cells[i].value);
+			}
+		},
+		error : function(xhr, ajaxOptions, thrownErrorxhr){
+			console.log(xhr.status);
+			console.log(thrownErrorxhr.message);
+		},
+		complete: function(){
+			
+			chart = new Highcharts.Chart({
+		         chart: {
+		             renderTo: 'grafico_i'
+		         },
+		         title: {
+		             text: null
+		         },
+				 xAxis: {
+	                type: 'datetime',
+	                title: {
+	                    text: null
+	                }
+	            },
+		         yAxis: [{ // Primary yAxis
+		             labels: {
+		                 formatter: function() {
+		                     return this.value +'lx';
+		                 },
+		                 style: {
+		                	 font: '17px Helvetica',
+						     fontWeight: 'bold',
+		                     color: '#ffd70f'
+		                 }
+		             },
+		             title: {
+		                 text: null
+		                 
+		             },
+		             min: 0
+		           
+		         }],
+		         tooltip: {
+		             enabled:false
+		         },
+		         legend: {
+		             enabled:false
+		         },
+		         series: [{
+		             name: 'Illuminanza',
+		             color: '#ffd70f',
+		             type: 'spline',
+		             yAxis: 0,
+		             data: ill_values,
+		             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+			         pointInterval: point_interval, 
+		             tooltip: {
+		                 valueSuffix: ' lx'
+		             }
+		 
+		         }]
+		     });
+		}
+	});
+	
+	//ogni 10 minuti controllo se è cambiata l'ora corrente
+	//se si devo ridisegnare il grafico
+	setInterval(function(){
+		var point;
+		//prendo data e ora attuale
+		var actual_date = moment();
+		var current_hour = (actual_date.subtract('hour', 1)).hour()
+		
+		console.log(hour);
+		console.log(current_hour);
+		//se current_hour>hour 
+		if(current_hour > hour || (current_hour == 0 && hour != 0)){
+			//è passata l'ora
+			console.log('è passata l ora');
+			hour = current_hour;
+			
+			//prendo solo il dato relativo ad hour
+			query_ill = build_interval_query_climatic(mirafiori_query_dwh,'Illuminance', drain, year, month, day, hour, year, month, day, hour);
+			console.log(query_ill);
+			
+			//aggiorno il grafico
+			
+			 $.ajax({
+				url : query_ill,
+				type : "GET",
+				dataType : "jsonp",
+				success : function(data) {
+					console.log("ajax success");
+					var count = data.cells.length;
+					console.log(count);
+					for ( var i = 0; i < count; i++) {
+						point = roundtwo(data.cells[i].value);
+					}
+					
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					
+					chart.series[0].addPoint(point, true, true);
+				}
+			}); 
+			
+			
+		}
+		else {
+			console.log("non è cambiata l'ora");
+		}
+	}, 10 * 60 * 1000);
+});
+</script>
+<img class="logo" src="img/logoapplus.png">
+<div id="titolo">  Aula Studio di Mirafiori </div>
+<div id="sottotitolo">  Illuminanza nelle ultime 24 ore </div>
+
+<div class="grafico_centrale">
+
+	<div id="grafico_i"></div>
+
+<div class="footer"> www.applus-energie.org</div>
+</div>
+</div>
+
+

@@ -1,0 +1,33 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+	$().ready(function(){	
+			
+		pickdate();
+		setInterval(pickdate,2000);
+		
+		
+	});
+
+	function pickdate(){
+		
+		var now = moment();
+		now.lang('en');
+		$("#data").html(now.format('DD MMMM YYYY'));
+		$("#ora").html(now.format('HH:mm'));
+	}
+</script>
+<div  class="data_ora">
+	<div id="data"> </div> 
+	<div id="ora"></div> 
+	<div id="link" ng-include src="'linkApplicazione.html'"></div> 
+</div>

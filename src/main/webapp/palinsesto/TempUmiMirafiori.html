@@ -1,0 +1,309 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<div class="palinsesto">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/moment.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/charts.theme.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function () {
+	var chart;
+	var last_month;
+	var last_day;
+	var last_year;
+	//devo prendere l'ora attuale 
+	var today = moment();
+	var year = today.year();
+	var month = today.month()+1;
+	var day = today.date();
+	var hour = (today.subtract('hour', 1)).hour();
+	console.log(month+" "+ day + " " + hour);
+	
+	var temp_values =[];
+	var umi_values = [];
+	//prendo le 24 ore precedenti 
+	//devo sapere anche mese e anno 
+	
+	//se sono a mezzanotte, non devo cambiare giorno precedente (cioè le 23 di hour dato che ho sottratto 1)
+	var last_hour;
+	if(hour == 23){
+		console.log("ahoooo");
+		last_day = day;
+		last_month = month;
+		last_year= year;
+		console.log(month+" "+ day + " " + hour);
+		last_hour = moment().subtract('hour', 23).hour();
+		console.log(last_month+" "+ last_day + " " + last_hour);
+		
+	}
+	else{
+		var last = moment().subtract('hour', 23);
+		last_day = last.date();
+		last_month=last.month()+1;
+		last_year=last.year();
+		last_hour = last.hour();
+	}
+	
+	var mirafiori_query_dwh = "https://mirafiori.applus.polito.it/JeerpDa/bi/mdx?q=";
+	
+	//devo prendere i nomi dei drain per temperatura ed umidità
+	var draint = "MIR_HVAC_STU_GEN_T";
+	var drainu = "MIR_HVAC_STU_GEN_UR";
+	
+	//costruisco le due query
+	var query_temp =  build_interval_query_climatic(mirafiori_query_dwh, 'Temperature', draint, last_year, last_month, last_day, last_hour, year, month, day, hour);
+	var query_umi =  build_interval_query_climatic(mirafiori_query_dwh, 'Humidity', drainu, last_year, last_month, last_day, last_hour, year, month, day, hour);
+	
+	//devo eseguire le query 
+	console.log("query temp " + query_temp);
+	console.log("query umi " + query_umi);
+	
+	//chiamata ajax per la query
+	$.ajax({
+		url : query_temp,
+		type : "GET",
+		dataType : "jsonp",
+		async : false,
+		success : function(data) {
+			console.log("ajax success");
+			//devo salvare i dati nel vettore, come per grafico centrale
+			var count = data.cells.length;
+			console.log(count);
+			for ( var i = 0; i < count; i++) {
+				if(data.cells[i].value!=null){
+					temp_values[i] = roundtwo(parseFloat(data.cells[i].value));
+				}
+				else{
+					temp_values[i]=null;
+				}
+				
+			}
+		},
+		error : function(xhr, ajaxOptions, thrownErrorxhr){
+			console.log(xhr.status);
+			console.log(thrownErrorxhr.message);
+		},
+		complete: function(){
+			$.ajax({
+				url : query_umi,
+				type : "GET",
+				dataType : "jsonp",
+				async : false,
+				success : function(data) {
+					console.log("ajax success");
+					var count = data.cells.length;
+					console.log(count);
+					for ( var i = 0; i < count; i++) {
+						if(data.cells[i].value!=null){
+							umi_values[i] = roundtwo(parseFloat(data.cells[i].value));
+						}
+						else{
+							umi_values[i] = null;
+						}
+					}
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					point_interval = 3600 * 1000; //one hour 
+					chart = new Highcharts.Chart({
+				         chart: {
+				             renderTo: 'grafico_tu'
+				         },
+				         title: {
+				             text: null
+				         },
+				         xAxis: {
+			                type: 'datetime',
+			                title: {
+			                    text: null
+			                }
+			            },
+				         yAxis: [{ // Primary yAxis
+				             labels: {
+				                 formatter: function() {
+				                     return this.value +'°C';
+				                 },
+				                 style: {
+				                	 font: '17px Helvetica',
+								     fontWeight: 'bold',
+				                     color: '#f5991a'
+				                 }
+				             },
+				             title: {
+				                 text: 'Temperatura',
+				                 style: {
+				                     color: '#f5991a'
+				                 }
+				             }
+				           
+				         }, { // Secondary yAxis
+				             //gridLineWidth: 0,
+				             title: {
+				                 text: 'Umidità relativa',
+				                 style: {
+				                     color: '#4572A7'
+				                 }
+				             },
+				             labels: {
+				                 formatter: function() {
+				                     return this.value +' %';
+				                 },
+				                 style: {
+				                	 font: '17px Helvetica',
+								     fontWeight: 'bold',
+				                     color: '#4572A7'
+				                 }
+				             },
+				             opposite: true
+				 
+				         }],
+				         tooltip: {
+				             enabled: false
+				         },
+				         legend: {
+				             enabled:false
+				         },
+				         series: [{
+				             name: 'Temperatura',
+				             color: '#f5991a',
+				             type: 'spline',
+				             yAxis: 0,
+				             data: temp_values,
+				             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+					         pointInterval: point_interval, 
+				             tooltip: {
+				                 valueSuffix: ' °C'
+				             }
+				 
+				         }, {
+				             name: 'Umidità relativa',
+				             type: 'spline',
+				             color: '#4572A7',
+				             yAxis: 1,
+				             data: umi_values,
+				             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+					         pointInterval: point_interval, 
+				             marker: {
+				                 enabled: false
+				             },
+				             dashStyle: 'shortdot',
+				             tooltip: {
+				                 valueSuffix: ' %'
+				             }
+				 
+				         }]
+				     });
+					
+				}
+			});
+		}
+	});
+	
+	setInterval(function(){
+
+		var point_t;
+		var point_umi;
+		//prendo data e ora attuale
+		var actual_date = moment();
+		var current_hour = (actual_date.subtract('hour', 1)).hour();
+		
+		console.log(hour);
+		console.log(current_hour);
+		//se current_hour>hour 
+		if(current_hour > hour || (current_hour == 0 && hour != 0)){
+			//è passata l'ora
+			console.log('è passata l ora');
+			hour = current_hour;
+			console
+			//costruisco le due query
+			query_temp =  build_interval_query_climatic(mirafiori_query_dwh, 'Temperature', draint, year, month, day, hour, year, month, day, hour);
+			query_umi =  build_interval_query_climatic(mirafiori_query_dwh, 'Humidity', drainu, year, month, day, hour, year, month, day, hour);
+			
+			
+			console.log(query_temp);
+			console.log(query_umi);
+			
+			//aggiorno il grafico
+			$.ajax({
+				url : query_temp,
+				type : "GET",
+				dataType : "jsonp",
+				async : false,
+				success : function(data) {
+					console.log("ajax success");
+					var count = data.cells.length;
+					console.log(count);
+					for ( var i = 0; i < count; i++) {
+						point_t = roundtwo(data.cells[i].value);
+					}
+					
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					
+					$.ajax({
+						url : query_umi,
+						type : "GET",
+						dataType : "jsonp",
+						async : false,
+						success : function(data) {
+							console.log("ajax success");
+							var count = data.cells.length;
+							console.log(count);
+							for ( var i = 0; i < count; i++) {
+								point_umi = roundtwo(data.cells[i].value);
+							}
+							
+						},
+						error : function(xhr, ajaxOptions, thrownErrorxhr){
+							console.log(xhr.status);
+							console.log(thrownErrorxhr.message);
+						},
+						complete: function(){
+							
+							chart.series[0].addPoint(point_t, true, true);
+							chart.series[1].addPoint(point_umi, true, true);
+							
+						}
+					});
+				}
+			});
+		}
+	 
+	}, 10  * 60* 1000);
+	
+
+	
+});
+</script>
+<img class="logo" src="img/logoapplus.png">
+<div id="titolo">  Aula Studio di Mirafiori </div>
+<div id="sottotitolo">  Temperatura e Umidit&agrave; delle ultime 24 ore </div>
+
+<div class="grafico_centrale">
+
+	<div id="grafico_tu"></div>
+
+<div class="footer"> www.applus-energie.org</div>
+</div>
+</div>
+
+

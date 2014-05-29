@@ -1,0 +1,46 @@
+[
+   {
+      "code":"ED1",
+      "name":"Edificio 1",
+      "children":[
+         {
+            "code":"STA1",
+            "name":"Stanza 1",
+            "drains":[
+               {
+                  "code":"m1-p1",
+                  "name":"misura di potenza 1",
+                  "description":"mia descrizione",
+                  "total":true
+               },
+               {
+                  "code":"m1-p2",
+                  "name":"misura di potenza 2",
+                  "description":"mia descrizione",
+                  "total":false
+               },
+               {
+                  "code":"m1-p3",
+                  "name":"misura di potenza 3",
+                  "description":"mia descrizione",
+                  "total":false
+               }
+            ]
+         }
+      ],
+      "drains":[
+         {
+            "code":"m1-p1",
+            "name":"misura di potenza 1",
+            "description":"mia descrizione",
+            "total":true
+         },
+         {
+            "code":"m1-p2",
+            "name":"misura di potenza 2",
+            "description":"mia descrizione",
+            "total":false
+         }
+      ]
+   }
+]

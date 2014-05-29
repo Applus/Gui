@@ -1,0 +1,122 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+	var co2_chart;
+	var conv_fact = 406;
+	var codueeq = new Array();
+	var query_month;
+	
+	var count;
+	var drain;
+	var place;
+	
+    //memorizzo un array di stringhe per le etichette
+    var etichette = new Array();
+	$(document).ready(
+					function() {
+						//prendo il mese attuale (mi serve per le ascisse), uso moment
+						
+						var now = moment();
+						now.lang('en');
+						
+						//devo prendere il drain che misura il totale della dashboard che visualizzo
+						drain = GetURLParameter("totalenergy");
+						place = GetURLParameter("place");
+						
+						var time_zone=moment().format("ZZ");
+						time_zone.toString();
+						var tz="%2B";
+						for(n=1;n<time_zone.length;n++){
+							tz=tz+time_zone[n];
+						}
+						var last_month=moment().subtract('month', 1).format("YYYY-MM-01THH:mm:ss");
+						last_month=last_month+tz;
+						
+
+						if(place=='verres'){
+							query_month = week_query_ver + drain + '?timeAggregation=MONTH&measureAggregation=SUM&start=' + last_month;
+						}
+						if(place=='mirafiori'){
+							query_month = week_query_mir + drain + '?timeAggregation=MONTH&measureAggregation=SUM&start=' + last_month;
+						}
+						
+						etichette[1] = now.format('MMM');
+						etichette[0] = (now.subtract('month',1)).format('MMM');
+						
+					console.log("query month " + query_month);
+			
+					$.ajax({
+						url : query_month,
+						dataType : "jsonp",
+						success : function(data) {
+								count = data.measures.length;
+								for ( var i = 0; i < count; i++) {
+									codueeq[i] = round(((data.measures[i].value / 1000) * conv_fact) / 1000);
+								}
+						},
+						error : function(xhr, ajaxOptions,
+								thrownErrorxhr) {
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+								var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
+								$(".co2_equivalente").append(scritta);
+						},
+						complete : function(qXHR, textStatus) {
+							if(count>0){
+								//costruisco il grafico
+								co2_chart = new Highcharts.Chart({
+									chart : {
+										renderTo : 'CO2_chart',
+										type : 'column',
+										backgroundColor : '#2D2D2D'
+									},
+									colors : [ '#93268F', '#9F005D' ],
+									legend : {
+									enabled : false
+									},
+									title : {
+										text : 'Equivalent CO2',
+										style : {
+											color : '#FFFFFF',
+											fontWeight : 'bold'
+										}
+									},
+									xAxis : {
+										categories : etichette
+									},
+									yAxis : {
+										title : {
+											text : 'Kg of CO2',
+											color : '#FFFFFF'
+										}
+									},
+									series : [ {
+										name: 'Equivalent C02',
+										data : codueeq
+									} ]
+								});
+							}
+							
+							else {
+								var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page.");
+								$("#CO2_chart").append(scritta);
+							}
+								
+						}
+					});
+		});
+</script>
+
+<div class="co2_equivalente">
+
+	<div id="CO2_chart"></div>
+</div>

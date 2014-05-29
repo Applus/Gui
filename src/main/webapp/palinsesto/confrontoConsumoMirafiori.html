@@ -1,0 +1,297 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<div class="palinsesto">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/moment.js"></script>
+<script type="text/javascript" src="js/highcharts.js"></script>
+<script type="text/javascript" src="js/charts.theme.js"></script>
+
+<script type="text/javascript">
+var chart1;
+
+var yesterday_values = new Array();
+var today_values = new Array();
+
+var timer;
+//prima ora in cui si visualizzano i dati
+var first_hour = 9;
+//variabili per memorizzare data corrente 
+var date;
+var hour;
+var current_hour;
+var query_yesterday;
+var query_today;
+
+var count;
+
+//NB: ho forzato le due chiamate ajax come sincrone, cos� non dovrebbero esserci problemi per il grafico
+$(document).ready(
+		function() {
+			
+			clearInterval(timer);
+
+			//prendo data, mese e anno corrente
+			//uso funzioni di moment.js
+
+			/*OGGI*/
+			var today = moment();
+			var day = moment().date();
+			var month = moment().month() +1; //perch� il mese parte da zero
+			var year = moment().year();
+			
+			/*IERI*/
+			var yesterday = moment().subtract('days', 1);
+			console.log(yesterday);
+			var yesterday_day = yesterday.date();
+			var yesterday_month = yesterday.month() + 1;
+			var yesterday_year = yesterday.year();
+			
+			
+			var drain="MIR_ELE_STU_P" /* default vaule*/
+			var mirafiori_query_dwh = "https://mirafiori.applus.polito.it/JeerpDa/bi/mdx?q=";
+
+			
+			query_yesterday = build_interval_query_energy(mirafiori_query_dwh, drain, yesterday_year, yesterday_month, yesterday_day, 9, null, yesterday_year,  yesterday_month, yesterday_day, 20, null, true);
+			
+			
+			$.ajax({
+				url : query_yesterday,
+				type : "GET",
+				dataType : "jsonp",
+				async : false,
+				success : function(data) {
+					
+					count = data.cells.length;
+				
+					for ( var i = 0; i < count; i++) {
+						yesterday_values[i] = round(data.cells[i].value / 1000);
+						
+					}
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr) {
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+					var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+					$(".grafico_centrale").append(scritta);
+				},
+				complete : function(qXHR, textStatus) {
+					
+					if(count>0){
+						chart1 = new Highcharts.Chart({
+							chart : {
+								renderTo : 'chart',
+								type : 'column',
+							},
+							colors : [ '#F15A24', '#0071BC' ],
+							legend : {
+								align : 'center',
+								layout : 'horizontal',
+								verticalAlign : 'top'
+							},
+							title : {
+								text : null
+							},
+				            plotOptions: {
+				                column: {
+				                    dataLabels: {
+				                        enabled: true,
+				                        color: 'white',
+				                        style: {
+				                            fontWeight:'bold',
+				                            fontSize:'15pt'
+				                        },
+		                    			y: -3
+				                    }
+				                }
+				            },
+							xAxis : {
+								categories : [ '09-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18', '18-19',
+										'19-20', '20-21' ],
+								title : {
+									text: null
+								},
+								labels: {
+									style: {
+								     	font: '22px Helvetica',
+								        fontWeight: 'bold'
+								     },
+									
+									x:0,
+									y:30
+								
+								}
+								            
+							},
+							yAxis : {
+								allowDecimals: true,
+								title : {
+									text : null,
+								},
+								labels: {
+									enabled:false,
+									style: {
+								     	font: '22px Helvetica',
+								        fontWeight: 'bold',
+								        top: '20px'
+								     }
+								},
+								min : 0
+							},
+							series : [ {
+								name : 'IERI',
+								data : yesterday_values,
+								pointWidth: 35,
+								pointPadding: 0
+					            
+							}, {
+								name : 'OGGI',
+								data : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+								pointWidth: 35,
+								pointPadding: 0
+					            
+							} ]
+						}, function(chart1) {
+
+							hour = 9;
+						
+							date = new Date();
+							current_hour = date.getHours();
+							
+							if (current_hour > hour) {
+								//se sono oltre le 21, devo chiedere fino alle 20
+								if(current_hour>21){
+									current_hour=21;
+								}
+								query_today = build_interval_query_energy(mirafiori_query_dwh, drain, year, month, day, 9, null, year,  month, day, (current_hour - 1), null, true);
+								
+								
+
+								//chiamata ajax
+								$.ajax({
+									url : query_today,
+									type : "GET",
+									dataType : "jsonp",
+									async : false,
+									success : function(data) {
+										//aggiorno hour solo se la chiamata ajax � andata a buon fine
+										hour = current_hour;
+										//prendo i valori e li metto nell'array today
+										var count = data.cells.length;
+										
+										for ( var i = 0; i < count; i++) {
+											today_values[i] = round(data.cells[i].value / 1000);
+											
+										}
+									},
+									error : function(xhr, ajaxOptions, thrownErrorxhr) {
+										console.log(xhr.status);
+										console.log(thrownErrorxhr.message);
+									},
+									complete : function(qXHR, textStatus) {
+										//devo aggiornare i valori della serie che si riferisce ad oggi
+										for ( var i = 0; i < today_values.length; i++) {
+											var point = chart1.series[1].points[i];
+											var newVal = today_values[i];
+											point.update(newVal);
+										}
+									}
+								});
+							}
+
+							//ogni 10 min controllo se è cambiata l'ora
+							timer = setInterval(function() {
+								date = moment();
+								var diff = date.date()-today.date();
+								if(diff==0){
+									
+									current_hour = date.hour();
+									if (current_hour > hour) {
+										
+										//se sono oltre le 21, devo chiedere fino alle 20
+										if(current_hour>21){
+											current_hour=21;
+										}
+										
+										//costruisco la query
+										query_today = build_interval_query_energy(mirafiori_query_dwh, drain, year, month, day, 9, null, year,  month, day, (current_hour - 1), null, true);
+										
+									
+
+										//chiamata ajax
+										$.ajax({
+											url : query_today,
+											type : "GET",
+											dataType : "jsonp",
+											async : false,
+											success : function(data) {
+												//aggiorno hour solo se la chiamata ajax � andata a buon fine
+												hour = current_hour;
+												//prendo i valori e li metto nell'array today
+												count = data.cells.length;
+												
+												for ( var i = 0; i < count; i++) {
+													today_values[i] = round(data.cells[i].value / 1000);
+													
+												}
+											},
+											error : function(xhr, ajaxOptions, thrownErrorxhr) {
+												console.log(xhr.status);
+												console.log(thrownErrorxhr.message);
+											},
+											complete : function(qXHR, textStatus) {
+												//devo aggiornare i valori della serie che si riferisce ad oggi
+												for ( var i = 0; i < today_values.length; i++) {
+													var point = chart1.series[1].points[i];
+													var newVal = today_values[i];
+													point.update(newVal);
+												}
+											}
+										});
+									}
+								}
+								else{
+									//è cambiato il giorno
+									console.log('è cambiato il giorno');
+									//posso ricaricare la pagina, tanto avviene di notte
+									window.location.reload(true);
+								}
+								
+
+							}, 10 * 60 * 1000);
+
+						});
+					}
+					else {
+						var scritta = $("<p class='errorMessage'>").text("Il server non è al momento raggiungibile. Prova a ricaricare la pagina");
+						$(".grafico_centrale").append(scritta);
+					}
+					
+				}
+			});
+
+		});
+</script>
+<img class="logo" src="img/logoapplus.png">
+<div id="titolo">  Aula Studio di Mirafiori </div>
+<div id="sottotitolo">  Consumo Energetico Orario (kW&middot;h) </div>
+
+<div class="grafico_centrale">
+
+	<div id="chart"></div>
+
+<div class="footer"> www.applus-energie.org</div>
+</div>
+</div>
+
+

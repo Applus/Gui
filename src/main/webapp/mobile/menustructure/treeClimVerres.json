@@ -1,0 +1,241 @@
+[ { "children" : [ ],
+    "description" : "Aula femminile 1",
+    "drains" : [ 
+    	{ "description" : "",
+          "id" : "120_T01_TVAL",
+          "name" : "120_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "120_T01_UVAL",
+          "name" : "120_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "120_T01_CVAL",
+          "name" : "120_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "120_REG_VLV_CLD",
+          "name" : "120_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+        
+      ],
+    "id" : "aulaf1",
+    "name" : "Lecture Room F1"
+  },
+  { "children" : [ ],
+    "description" : "Aula femminile 2",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "123_T01_TVAL",
+          "name" : "123_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "123_T01_UVAL",
+          "name" : "123_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "123_T01_CVAL",
+          "name" : "123_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "123_REG_VLV_CLD",
+          "name" : "123_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "aulaf2",
+    "name" : "Lecture Room F2"
+  },
+  { "children" : [ ],
+    "description" : "Aula femminile 3",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "126_T01_TVAL",
+          "name" : "126_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "126_T01_UVAL",
+          "name" : "126_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "126_T01_CVAL",
+          "name" : "126_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "126_REG_VLV_CLD",
+          "name" : "126_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "aulaf3",
+    "name" : "Lecture Room F3"
+  },
+  { "children" : [ ],
+    "description" : "Aula maschile 1",
+    "drains" : [ 
+         { "description" : "",
+          "id" : "104_T01_TVAL",
+          "name" : "104_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "104_T01_UVAL",
+          "name" : "104_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "104_T01_CVAL",
+          "name" : "104_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "104_REG_VLV_CLD",
+          "name" : "104_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "aulam1",
+    "name" : "Lecture Room M1"
+  },
+  { "children" : [ ],
+    "description" : "Aula maschile 2",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "108_T01_TVAL",
+          "name" : "108_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "108_T01_UVAL",
+          "name" : "108_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "108_T01_CVAL",
+          "name" : "108_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "108_REG_VLV_CLD",
+          "name" : "108_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "aulam2",
+    "name" : "Lecture Room M2"
+  },
+  { "children" : [ ],
+    "description" : "Aula maschile 3",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "111_T01_TVAL",
+          "name" : "111_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "111_T01_UVAL",
+          "name" : "111_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "111_T01_CVAL",
+          "name" : "111_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "111_REG_VLV_CLD",
+          "name" : "111_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "aulam3",
+    "name" : "Lecture Room M3"
+  },
+  { "children" : [ ],
+    "description" : "Segreteria Politecnico",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "96_T01_TVAL",
+          "name" : "96_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "96_T01_UVAL",
+          "name" : "96_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "96_T01_CVAL",
+          "name" : "96_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "96_REG_VLV_CLD",
+          "name" : "96_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "poliufficio",
+    "name" : "Polytechnic  Office"
+  },
+  { "children" : [ ],
+    "description" : "Sala Riunioni Politecnico",
+    "drains" : [ 
+        { "description" : "",
+          "id" : "95_T01_TVAL",
+          "name" : "95_T01_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "95_T01_UVAL",
+          "name" : "95_T01_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "95_T01_CVAL",
+          "name" : "95_T01_CVAL",
+          "type" : "CO2"
+        },
+        { "description" : "",
+          "id" : "95_REG_VLV_CLD",
+          "name" : "95_REG_VLV_CLD",
+          "type" : "Valvola"
+        }
+      ],
+    "id" : "poliriunioni",
+    "name" : "Polytechnic Meeting Room"
+  },
+  { "children" : [ ],
+    "description" : "Gallery",
+    "drains" : [ 
+    	{ "description" : "",
+          "id" : "GAL_T01_TOP_TVAL|GAL_T02_MIDDLE_TVAL|GAL_T03_BOTTOM_TVAL",
+          "name" : "GAL_T01_TOP_TVAL|GAL_T02_MID_TVAL|GAL_T03_BOTTOM_TVAL",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "GAL_T01_TOP_UVAL|GAL_T02_MIDDLE_UVAL|GAL_T03_BOTTOM_UVAL",
+          "name" : "GAL_T01_TOP_UVAL|GAL_T02_MIDDLE_UVAL|GAL_T03_BOTTOM_UVAL",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "GAL_T01_TOP_CVAL|GAL_T02_MIDDLE_CVAL|GAL_T03_BOTTOM_CVAL",
+          "name" : "GAL_T01_TOP_CVAL|GAL_T02_MIDDLE_CVAL|GAL_T03_BOTTOM_CVAL",
+          "type" : "CO2"
+        }
+      ],
+    "id" : "gallery",
+    "name" : "Gallery"
+  }
+  
+]

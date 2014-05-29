@@ -1,0 +1,252 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html;">
+<meta name="viewport" content="width=device-width">
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+
+<!-- css template  -->
+ <link rel="stylesheet" type="text/css" href="css/style.css"> 
+  <link rel="stylesheet" type="text/css" href="css/style_clim.css"> 
+
+
+<script>
+
+// stores the device context of the canvas we use to draw the outlines
+// initialized in myInit, used in myHover and myLeave
+var hdc;
+
+// shorthand func
+function byId(e){return document.getElementById(e);}
+
+function myLeave()
+{
+    var canvas = byId('myCanvas');
+    hdc.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function myInit()
+{
+    // get the target image
+    var img = byId('image');
+
+    var x,y, w,h;
+
+    // get it's position and width+height
+    x = img.offsetLeft;
+    y = img.offsetTop;
+    w = img.clientWidth;
+    h = img.clientHeight;
+
+    // move the canvas, so it's contained by the same parent as the image
+    var imgParent = img.parentNode;
+    var can = byId('myCanvas');
+    imgParent.appendChild(can);
+
+    // place the canvas in front of the image
+    can.style.zIndex = 1;
+
+    // position it over the image
+    can.style.left = x+'px';
+    can.style.top = y+'px';
+
+    // make same size as the image
+    can.setAttribute('width', w+'px');
+    can.setAttribute('height', h+'px');
+
+    // get it's context
+    hdc = can.getContext('2d');
+
+    // set the 'default' values for the colour/width of fill/stroke operations
+    hdc.fillStyle = 'white';
+    hdc.strokeStyle = 'white';
+    hdc.lineWidth = 2;
+}
+
+function creaBordo(field){
+	var canvas = document.getElementById("myCanvas");
+	var area=field.getAttribute('coords');
+	var str=area.split(",");
+	var x=str[0];
+	var y=str[1];
+	var distx=str[2]-x;
+	var disty=str[3]-y;
+	if (canvas.getContext) {
+        var ctx = canvas.getContext("2d");
+        ctx.strokeRect(x,y,distx,disty);
+    }	
+	
+} 
+
+$(document).ready(function(){
+	$("button").button();
+	$("#backtohome").click(function(){
+		window.location='index_verres.html';
+	});
+	
+	//so di essere in verres
+	
+	//inizializzo vettore chiave-valore per memorizzare oggetto e drains
+	var stringadrains = new Array();
+	
+	//prendo il json della navigazione climatica di verres
+	$.ajax({
+		url: "menustructure/treeClimVerres.json",
+		type : "GET",
+		dataType : "json",
+		success: function(data){
+			console.log("menu success");
+			console.log(data);
+			var l = data.length;
+			console.log(l);
+			
+			for(var i = 0; i < l; i++){
+				var name = data[i].name;
+				
+				var id = data[i].id;
+				
+				var drains = data[i].drains;
+				
+				var stringa = "";
+				for(var j = 0; j< drains.length; j++){
+					if(j==0){
+						stringa = stringa + drains[j].description+drains[j].type+"="+drains[j].id+"&place=verres";
+					}else{
+						stringa = stringa + "&"+drains[j].description+drains[j].type+"="+drains[j].id+"&place=verres";
+					}
+				}
+				
+				//memorizzo nel vettore
+				stringadrains[id]=stringa;
+			}
+			
+			
+
+		},
+		error: function(xhr, ajaxOptions, thrownErrorxhr){
+			console.log("menu error");
+			console.log(xhr.status);
+			console.log(thrownErrorxhr.message);
+		},
+		complete: function(qXHR, textStatus){
+			
+			//prendo con jquery tutti i tag di tipo area
+			//ne modifico href aggiungengo i drain
+			var area = $("area");
+			console.log(area);
+			$("area").each(function(){
+				var id = $(this).attr('id');
+				console.log(id);
+				var href = $(this).attr('href');
+				console.log(href);
+				var href_new = href+stringadrains[id];
+				console.log(href_new);
+				$(this).attr('href', href_new);
+			});
+		
+		}
+	});
+});
+
+
+</script>
+
+
+<title>Applus Energie</title>
+
+<style>
+	#center {
+		margin:auto;
+	}
+	canvas
+{
+    pointer-events: none;       /* make the canvas transparent to the mouse - needed since canvas is position infront of image */
+    position: absolute;
+}
+</style>
+
+
+</head>
+<body onload="myInit()">
+
+	<div class="application"> 
+	
+	<div class="intestazione">
+		<button id="backtohome"> Back to home </button>
+		
+		<h1 class="title"> System plan </h1>
+	</div>
+	
+	<div class="fillparent">
+
+		<img id="image" src="img/MenuTermicoVerres.jpg" usemap="#mymap" alt="test" style="z-index:2;"/> 
+		<![if !IE]><canvas id='myCanvas' style="z-index:3;"></canvas> <![endif]>
+	
+		<map name="mymap" id="mymap" style="z-index:4;">
+			<area id="CT" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="248,38,398,158" href="centraletermica.html?" alt="">
+			<area id="CF" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="493,38,673,158" href="centralefrigorifera.html?" alt="">
+			<area id="UTA9" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="90,220,190,290" href="uta.html?id=9&" alt="">
+			<area id="UTA2" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="235,220,335,290" href="uta.html?id=2&" alt="">
+			<area id="UTA1" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="385,220,485,290" href="uta.html?id=1&" alt="">
+			<area id="UTA7" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="620,220,720,290" href="uta.html?id=7&" alt="">
+			<area id="UTA4" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="750,220,850,290" href="uta.html?id=4&" alt="">
+			<area id="aulam1" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="50,380,120,440" href="dashboardclimatica_verres.html?name=Lecture Room M1&" alt="">
+			<area id="aulam2" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="115,335,185,395" href="dashboardclimatica_verres.html?name=Lecture Room M2&" alt="">
+			<area id="aulam3" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="180,390,250,450" href="dashboardclimatica_verres.html?name=Lecture Room M3&" alt="">
+			<area id="aulaf1" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="205,465,275,525" href="dashboardclimatica_verres.html?name=Lecture Room F1&" alt="">
+			<area id="aulaf2" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="280,425,345,485" href="dashboardclimatica_verres.html?name=Lecture Room F2&" alt="">
+			<area id="aulaf3" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="350,465,420,525" href="dashboardclimatica_verres.html?name=Lecture Room F3&" alt="">
+			<area id="poliriunioni" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="410,390,510,460" href="dashboardclimatica_verres.html?name=Polytechnic Meeting Room&" alt="">
+			<area id="poliufficio" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="500,330,600,410" href="dashboardclimatica_verres.html?name=Polytechnic Office&" alt="">
+			<area id="gallery" shape="rect" onmouseover='creaBordo(this);' onmouseout='myLeave();' coords="650,360,830,520" href="dashboardclimatica_verres.html?name=Gallery&" alt="">
+		</map>
+	</div>
+	
+	<div class="legenda">
+	Key:<br>
+	<img class="img_legenda" src="img/rosso.jpg" alt="rosso"/><span> Hot water </span><br>
+	<img class="img_legenda" src="img/blu.jpg" alt="blu"/><span> Chilled water </span><br>
+	<img class="img_legenda" src="img/giallo.jpg" alt="giallo"/><span> Airflow </span><br>
+	</div>
+	
+	<div class="nota">
+	NB: The plan is educational and not intended for other uses.
+	</div>
+	
+	
+	</div>
+	
+	
+
+</body>
+
+
+<!-- script jquery -->
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+</html>

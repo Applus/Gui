@@ -1,0 +1,1154 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+	
+	var chart;
+	var chart_multiple;
+	
+	var last_month;
+	var last_day;
+	var last_year;
+	//devo prendere l'ora attuale 
+	var today = moment();
+	
+	var month = today.month()+1;
+	var day = today.date();
+	var year = today.year();
+	var hour = (today.subtract('hour', 1)).hour();
+	console.log(month+" "+ day + " " + hour);
+	
+	var temp_values = [];
+	var temp_values_1 = [];
+	var temp_values_2 = [];
+	var temp_values_3 = [];
+	
+	var umi_values = [];
+	var umi_values_1 = [];
+	var umi_values_2 = [];
+	var umi_values_3 = [];
+	
+	var co2_values = [];
+	var co2_values_1 = [];
+	var co2_values_2 = [];
+	var co2_values_3 = [];
+
+	var point_interval = 3600 * 1000; //one hour 
+	
+	//se sono a mezzanotte, non devo cambiare giorno precedente (cioè le 23 di hour dato che ho sottratto 1)
+	var last_hour;
+	if(hour == 23){
+		last_day = day;
+		last_month = month;
+		last_year= year;
+		console.log(month+" "+ day + " " + hour);
+		last_hour = moment().subtract('hours', 23).hour();
+		console.log(last_month+" "+ last_day + " " + last_hour);
+		
+	}
+	else{
+		var last = moment().subtract('hours', 23);
+		last_day = last.date();
+		last_month=last.month()+1;
+		last_year=last.year();
+		last_hour = last.hour();
+	}
+	
+	//time zone
+	var time_zone=moment().format("ZZ");
+	time_zone.toString();
+	var tz="%2B";
+	for(n=1;n<time_zone.length;n++){
+		tz=tz+time_zone[n];
+	}
+	
+	/*IERI*/
+	var yesterday=moment().subtract('hours', 24).format("YYYY-MM-DDTHH:mm:ss");
+	yesterday=yesterday+tz;
+
+	//devo prendere il parametro dall'url 
+	var draint = GetURLParameter("Temperature");
+	var multiple_temp = false;
+	var draint_array = draint.split("|");
+	if(draint_array.length>1){
+		multiple_temp = true;
+	}
+	else{
+		multiple_temp = false;
+	}
+	
+	var drainu = GetURLParameter("RelativeHumidity");
+	var multiple_umi = false;
+	var drainu_array = drainu.split("|");
+	if(drainu_array.length>1){
+		multiple_umi = true;
+	}
+	else{
+		multiple_umi = false;
+	}
+	
+	
+	var drainco2 = GetURLParameter("CO2");
+	var multiple_co2 = false;
+	var drainco2_array = drainco2.split("|");
+	if(drainco2_array.length>1){
+		multiple_co2 = true;
+	}
+	else{
+		multiple_co2 = false;
+	}
+
+	var query_temp;
+	var query_temp_1;
+	var query_temp_2;
+	var query_temp_3;
+	
+	var query_umi;
+	var query_umi_1;
+	var query_umi_2;
+	var query_umi_3;
+	
+	var query_co2;
+	var query_co2_2;
+	var query_co2_2;
+	var query_co2_3;
+	
+	//devo costruire le query
+	if(multiple_temp==false && multiple_umi==false && multiple_co2==false){
+		query_temp = week_query_ver + draint + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_umi = week_query_ver + drainu + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_co2 =  week_query_ver + drainco2 + "?start=" + yesterday + "&timeAggregation=HOUR";
+		
+	}
+	else{
+		query_temp_1 = week_query_ver + draint_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_temp_2 = week_query_ver + draint_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_temp_3 = week_query_ver + draint_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_umi_1 = week_query_ver + drainu_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_umi_2 = week_query_ver + drainu_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_umi_3 = week_query_ver + drainu_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_co2_1 = week_query_ver + drainco2_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_co2_2 = week_query_ver + drainco2_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+		query_co2_3 = week_query_ver + drainco2_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+	}
+
+	
+	//devo eseguire le query
+	if(multiple_temp==true){
+		$.ajax({
+			url : query_temp_1,
+			type : "GET",
+			dataType : "jsonp",
+			async : false,
+			success : function(data){
+				console.log('query temp success');
+				
+				console.log(data);
+				
+				//devo salvare i dati nel vettore
+				var count = data.measures.length;
+				for ( var i = 0; i < count; i++) {
+					if(data.measures[i].value!=null){
+						var time = moment(data.measures[i].time);
+						var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+						var obj = new Array();
+						obj[0]=date;
+						obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+						
+						temp_values_1[i] = obj;
+					}
+					else{
+						temp_values_1[i]=null;
+					}
+				}
+			},
+			error : function(xhr, ajaxOptions, thrownErrorxhr){
+				console.log(xhr.status);
+				console.log(thrownErrorxhr.message);
+			},
+			complete: function(){
+				$.ajax({
+					url : query_temp_2,
+					type : "GET",
+					dataType : "jsonp",
+					async : false,
+					success : function(data){
+						//devo salvare i dati nel vettore
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							if(data.measures[i].value!=null){
+								var time = moment(data.measures[i].time);
+								var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+								var obj = new Array();
+								obj[0]=date;
+								obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+								
+								temp_values_2[i] = obj;
+							}
+							else{
+								temp_values_2[i]=null;
+							}
+						}
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						$.ajax({
+							url : query_temp_3,
+							type : "GET",
+							dataType : "jsonp",
+							async : false,
+							success : function(data){
+								//devo salvare i dati nel vettore
+								var count = data.measures.length;
+								
+								for ( var i = 0; i < count; i++) {
+									if(data.measures[i].value!=null){
+										var time = moment(data.measures[i].time);
+										var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+										var obj = new Array();
+										obj[0]=date;
+										obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+										
+										temp_values_3[i] = obj;
+									}
+									else{
+										temp_values_3[i]=null;
+									}
+								}
+							},
+							error : function(xhr, ajaxOptions, thrownErrorxhr){
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+							},
+							complete: function(){
+								
+								//umi 1
+								$.ajax({
+									url: query_umi_1,
+									type : "GET",
+									dataType : "jsonp",
+									async : false,
+									error: function(xhr, ajaxOptions, thrownErrorxhr){
+										console.log(xhr.status);
+										console.log(thrownErrorxhr.message);
+									},
+									success: function(data){
+										//devo salvare i dati nel vettore, come per grafico centrale
+										var count = data.measures.length;
+										for ( var i = 0; i < count; i++) {
+											if(data.measures[i].value!=null){
+												var time = moment(data.measures[i].time);
+												var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+												var obj = new Array();
+												obj[0]=date;
+												obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+												
+												umi_values_1[i] = obj;
+											}
+											else{
+												umi_values_1[i]=null;
+											}
+										}
+									},
+									complete : function(){
+										$.ajax({
+											url: query_umi_2,
+											type : "GET",
+											dataType : "jsonp",
+											async : false,
+											error: function(xhr, ajaxOptions, thrownErrorxhr){
+												console.log(xhr.status);
+												console.log(thrownErrorxhr.message);
+											},
+											success: function(data){
+												//devo salvare i dati nel vettore, come per grafico centrale
+												var count = data.measures.length;
+												for ( var i = 0; i < count; i++) {
+													if(data.measures[i].value!=null){
+														var time = moment(data.measures[i].time);
+														var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+														var obj = new Array();
+														obj[0]=date;
+														obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+														
+														umi_values_2[i] = obj;
+													}
+													else{
+														umi_values_2[i]=null;
+													}
+												}
+											},
+											complete: function(){
+												$.ajax({
+													url: query_umi_3,
+													type : "GET",
+													dataType : "jsonp",
+													async : false,
+													error: function(xhr, ajaxOptions, thrownErrorxhr){
+														console.log(xhr.status);
+														console.log(thrownErrorxhr.message);
+													},
+													success: function(data){
+														//devo salvare i dati nel vettore, come per grafico centrale
+														var count = data.measures.length;
+														for ( var i = 0; i < count; i++) {
+															if(data.measures[i].value!=null){
+																var time = moment(data.measures[i].time);
+																var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+																var obj = new Array();
+																obj[0]=date;
+																obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+																
+																umi_values_3[i] = obj;
+															}
+															else{
+																umi_values_3[i]=null;
+															}
+														}
+													},
+													complete : function(){
+														//ajyax co2
+														$.ajax({
+															url: query_co2_1,
+															type : "GET",
+															dataType : "jsonp",
+															async : false,
+															error: function(xhr, ajaxOptions, thrownErrorxhr){
+																console.log(xhr.status);
+																console.log(thrownErrorxhr.message);
+															},
+															success: function(data){
+																//devo salvare i dati nel vettore, come per grafico centrale
+																var count = data.measures.length;
+																for ( var i = 0; i < count; i++) {
+																	if(data.measures[i].value!=null){
+																		var time = moment(data.measures[i].time);
+																		var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+																		var obj = new Array();
+																		obj[0]=date;
+																		obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+																		
+																		co2_values_1[i] = obj;
+																	}
+																	else{
+																		co2_values_1[i]=null;
+																	}
+																}
+															},
+															complete : function(){
+																$.ajax({
+																	url: query_co2_2,
+																	type : "GET",
+																	dataType : "jsonp",
+																	async : false,
+																	error: function(xhr, ajaxOptions, thrownErrorxhr){
+																		console.log(xhr.status);
+																		console.log(thrownErrorxhr.message);
+																	},
+																	success: function(data){
+																		//devo salvare i dati nel vettore, come per grafico centrale
+																		var count = data.measures.length;
+																		for ( var i = 0; i < count; i++) {
+																			if(data.measures[i].value!=null){
+																				var time = moment(data.measures[i].time);
+																				var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+																				var obj = new Array();
+																				obj[0]=date;
+																				obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+																				
+																				co2_values_2[i] = obj;
+																			}
+																			else{
+																				co2_values_2[i]=null;
+																			}
+																		}
+																	},
+																	complete: function(){
+																		$.ajax({
+																			url: query_co2_3,
+																			type : "GET",
+																			dataType : "jsonp",
+																			async : false,
+																			error: function(xhr, ajaxOptions, thrownErrorxhr){
+																				console.log(xhr.status);
+																				console.log(thrownErrorxhr.message);
+																			},
+																			success: function(data){
+																				//devo salvare i dati nel vettore, come per grafico centrale
+																				var count = data.measures.length;
+																				for ( var i = 0; i < count; i++) {
+																					if(data.measures[i].value!=null){
+																						var time = moment(data.measures[i].time);
+																						var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+																						var obj = new Array();
+																						obj[0]=date;
+																						obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+																						
+																						co2_values_3[i] = obj;
+																					}
+																					else{
+																						co2_values_3[i]=null;
+																					}
+																				}
+																			},
+																			complete : function(){
+																				
+																				//grafico
+																				 chart_multiple = new Highcharts.Chart({
+																			         chart: {
+																			             renderTo: 'grafico_tuc'
+																			         },
+																			         title: {
+																			             text: 'Temperature, Relative Humidity and CO2'
+																			         },
+																			         subtitle: {
+																			             text: 'Last 24 hours'
+																			         },
+																			         xAxis: {
+																		                type: 'datetime',
+																		                title: {
+																		                    text: null
+																		                }
+																		            },
+																			         yAxis: [{ // Primary yAxis
+																			             labels: {
+																			                 formatter: function() {
+																			                     return this.value +'°C';
+																			                 },
+																			                 style: {
+																			                     color: '#f5991a'
+																			                 }
+																			             },
+																			             title: {
+																			                 text: 'Temperature',
+																			                 style: {
+																			                     color: '#f5991a'
+																			                 }
+																			             },
+																			             tickInterval: 1,
+																			             min: 17,
+																			             max: 30
+																			         }, { // Secondary yAxis
+																			            // gridLineWidth: 0,
+																			             title: {
+																			                 text: 'Relative Humidity',
+																			                 style: {
+																			                     color: '#4572A7'
+																			                 }
+																			             },
+																			             labels: {
+																			                 formatter: function() {
+																			                     return this.value +' %';
+																			                 },
+																			                 style: {
+																			                     color: '#4572A7'
+																			                 }
+																			             },
+																			             opposite: true,
+																			             tickInterval: 5,
+																			             min: 10,
+																			             max: 75
+																			         },
+																			         { 
+																			            // gridLineWidth: 0,
+																			             title: {
+																			                 text: 'CO2',
+																			                 style: {
+																			                     color: '#89A54E'
+																			                 }
+																			             },
+																			             labels: {
+																			                 formatter: function() {
+																			                     return this.value +' ppm';
+																			                 },
+																			                 style: {
+																			                     color: '#89A54E'
+																			                 }
+																			             },
+																			             opposite: true,
+																			             tickInterval: 125,
+																			             min:0,
+																			             max:1625
+																			 
+																			         }],
+																			         tooltip: {
+																			             shared: true
+																			         },
+																			         legend: {
+																			             layout: 'vertical',
+																			             align: 'right',
+																			             verticalAlign: 'top'
+																			         },
+																			         series: [{
+																			             name: 'CO2 6th floor',
+																			             type: 'column',
+																			             color: '#89A54E',
+																			             yAxis: 2,
+																			             data: co2_values_1,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval,
+																			             tooltip: {
+																			                 valueSuffix: ' ppm'
+																			             }
+																			         },{
+																			             name: 'CO2 4th floor',
+																			             type: 'column',
+																			             color: '#5b6d34',
+																			             yAxis: 2,
+																			             data: co2_values_2,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             tooltip: {
+																			                 valueSuffix: ' ppm'
+																			             }
+																			         },{
+																			             name: 'CO2 2nd floor',
+																			             type: 'column',
+																			             color: '#262e16',
+																			             yAxis: 2,
+																			             data: co2_values_3,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             tooltip: {
+																			                 valueSuffix: ' ppm'
+																			             }
+																			         },{
+																			             name: 'T 6th floor',
+																			             color: '#f5991a',
+																			             type: 'spline',
+																			             yAxis: 0,
+																			             data: temp_values_1,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             tooltip: {
+																			                 valueSuffix: ' °C'
+																			             }
+																			 
+																			         },{
+																			             name: 'T 4th floor',
+																			             color: '#935d10',
+																			             type: 'spline',
+																			             yAxis: 0,
+																			             data: temp_values_2,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             tooltip: {
+																			                 valueSuffix: ' °C'
+																			             }
+																			 
+																			         }, {
+																			             name: 'T 2nd floor',
+																			             color: '#472d08',
+																			             type: 'spline',
+																			             yAxis: 0,
+																			             data: temp_values_3,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             tooltip: {
+																			                 valueSuffix: ' °C'
+																			             }
+																			 
+																			         }, {
+																			             name: 'RH 6th floor',
+																			             type: 'spline',
+																			             color: '#4572A7',
+																			             yAxis: 1,
+																			             data: umi_values_1,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             dashStyle: 'shortdot',
+																			             tooltip: {
+																			                 valueSuffix: ' %'
+																			             }
+																			         },
+																			         {
+																			             name: 'RH 4th floor',
+																			             type: 'spline',
+																			             color: '#284361',
+																			             yAxis: 1,
+																			             data: umi_values_2,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval,
+																			             dashStyle: 'shortdot',
+																			             tooltip: {
+																			                 valueSuffix: ' %'
+																			             }
+																			         },{
+																			             name: 'RH 2nd floor',
+																			             type: 'spline',
+																			             color: '#14202f',
+																			             yAxis: 1,
+																			             data: umi_values_3,
+																			             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+																				         pointInterval: point_interval, 
+																			             dashStyle: 'shortdot',
+																			             tooltip: {
+																			                 valueSuffix: ' %'
+																			             }
+																			         }]
+																			     });
+																			}
+																		});
+																	}
+																});
+															}
+														});
+													}
+												});
+											}
+										});
+									}
+								});
+							}
+						});
+
+					}
+				});
+			}
+		});
+	}
+	else{
+		$.ajax({
+			url : query_temp,
+			type : "GET",
+			dataType : "jsonp",
+			async : false,
+			success : function(data){
+				//devo salvare i dati nel vettore
+				var count = data.measures.length;
+				for ( var i = 0; i < count; i++) {
+					if(data.measures[i].value!=null){
+						var time = moment(data.measures[i].time);
+						var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+						var obj = new Array();
+						obj[0]=date;
+						obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+						
+						 temp_values[i] = obj; 
+					}
+					else{
+						temp_values[i]=null;
+					}
+				}
+	
+			},
+			error : function(xhr, ajaxOptions, thrownErrorxhr){
+				console.log(xhr.status);
+				console.log(thrownErrorxhr.message);
+			},
+			complete: function(){
+				//altra query (umi)
+				$.ajax({
+					url : query_umi,
+					type : "GET",
+					dataType : "jsonp",
+					async : false,
+					success: function(data){
+						//devo salvare i dati nel vettore, come per grafico centrale
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							if(data.measures[i].value!=null){
+								var time = moment(data.measures[i].time);
+								var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+								var obj = new Array();
+								obj[0]=date;
+								obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+								
+								umi_values[i] = obj;
+							}
+							else{
+								umi_values[i]=null;
+							}
+						}
+					},
+					error: function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete : function(){
+						//altra query (co2)
+						point_interval = 3600 * 1000; //one hour 
+						$.ajax({
+							url : query_co2,
+							type : "GET",
+							dataType : "jsonp",
+							async : false,
+							success: function(data){
+								//devo salvare i dati nel vettore, come per grafico centrale
+								var count = data.measures.length;
+								console.log(count);
+								for ( var i = 0; i < count; i++) {
+									if(data.measures[i].value!=null){
+										var time = moment(data.measures[i].time);
+										var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+										var obj = new Array();
+										obj[0]=date;
+										obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+										
+										co2_values[i] = obj;
+									}
+									else{
+										co2_values[i]=null;
+									}
+								}
+							},
+							error: function(xhr, ajaxOptions, thrownErrorxhr){
+								console.log(xhr.status);
+								console.log(thrownErrorxhr.message);
+							},
+							complete : function(){
+								
+								//grafico
+								 chart = new Highcharts.Chart({
+							         chart: {
+							             renderTo: 'grafico_tuc'
+							         },
+							         title: {
+							             text: 'Temperature, Relative Humidity and CO2'
+							         },
+							         subtitle: {
+							             text: 'Last 24 hours'
+							         },
+							         xAxis: {
+							                type: 'datetime',
+							                title: {
+							                    text: null
+							                }
+							            },
+							         yAxis: [{ // Primary yAxis
+							             labels: {
+							                 formatter: function() {
+							                     return this.value +'°C';
+							                 },
+							                 style: {
+							                     color: '#f5991a'
+							                 }
+							             },
+							             title: {
+							                 text: 'Temperature',
+							                 style: {
+							                     color: '#f5991a'
+							                 }
+							             },
+							             tickInterval: 1,
+							             min:17,
+							             max:30
+							           
+							         }, { // Secondary yAxis
+							            // gridLineWidth: 0,
+							             title: {
+							                 text: 'Relative Humidity',
+							                 style: {
+							                     color: '#4572A7'
+							                 }
+							             },
+							             labels: {
+							                 formatter: function() {
+							                     return this.value +' %';
+							                 },
+							                 style: {
+							                     color: '#4572A7'
+							                 }
+							             },
+							             opposite: true,
+							             tickInterval: 5,
+							             min:10,
+							             max:75
+							         },
+							         { 
+							            // gridLineWidth: 0,
+							             title: {
+							                 text: 'CO2',
+							                 style: {
+							                     color: '#89A54E'
+							                 }
+							             },
+							             labels: {
+							                 formatter: function() {
+							                     return this.value +' ppm';
+							                 },
+							                 style: {
+							                     color: '#89A54E'
+							                 }
+							             },
+							             opposite: true,
+							             tickInterval: 125,
+							             min:0,
+							             max:1625
+							         }],
+							         tooltip: {
+							             shared: true
+							         },
+							         legend: {
+							             layout: 'vertical',
+							             align: 'right',
+							             verticalAlign: 'top'
+							         },
+							         series: [{
+							             name: 'CO2',
+							             type: 'column',
+							             color: '#89A54E',
+							             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+								         pointInterval: point_interval, 
+							             yAxis: 2,
+							             data: co2_values,
+							             tooltip: {
+							                 valueSuffix: ' ppm'
+							             }
+							         }, {
+							             name: 'Temperature',
+							             color: '#f5991a',
+							             type: 'spline',
+							             yAxis: 0,
+							             data: temp_values,
+							             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+								         pointInterval: point_interval, 
+							             tooltip: {
+							                 valueSuffix: ' °C'
+							             }
+							 
+							         }, {
+							             name: 'Relative Humidity',
+							             type: 'spline',
+							             color: '#4572A7',
+							             yAxis: 1,
+							             data: umi_values,
+							             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+								         pointInterval: point_interval, 
+							             dashStyle: 'shortdot',
+							             tooltip: {
+							                 valueSuffix: ' %'
+							             }
+							         }]
+							     });
+								
+							}
+						});
+						
+					}
+				});
+
+			}
+		});
+	}
+	
+	//interval ogi 10 minuti per verificare che cambi l'ora
+	setInterval(function(){
+		var point_t;
+		var point_t_1;
+		var point_t_2;
+		var point_t_3;
+		
+		var point_u;
+		var point_u_1;
+		var point_u_2;
+		var point_u_3;
+		
+		var point_co2;
+		var point_co2_1;
+		var point_co2_2;
+		var point_co2_3;
+		
+		//prendo data e ora attuale
+		var actual_date = moment();
+		var current_hour = (actual_date.subtract('hour', 1)).hour();
+		
+		
+		if(current_hour > hour || (current_hour == 0 && hour != 0)){
+			console.log("è cambiata l'ora");
+			hour = current_hour;
+			
+			//devo verificare se ho sensori multilpli o meno (cioè se sono in gallery);
+			if(multiple_temp==true){
+				//devo richiedere sei punti e aggiornare sei serie
+				query_temp_1 = week_query_ver + draint_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_temp_2 = week_query_ver + draint_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_temp_3 = week_query_ver + draint_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_umi_1 = week_query_ver + drainu_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_umi_2 = week_query_ver + drainu_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_umi_3 = week_query_ver + drainu_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_co2_1 = week_query_ver + drainco2_array[0] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_co2_2 = week_query_ver + drainco2_array[1] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_co2_3 = week_query_ver + drainco2_array[2] + "?start=" + yesterday + "&timeAggregation=HOUR";
+				
+				//ajax per eseguire le query
+				$.ajax({
+					url : query_temp_1,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_t_1 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[3].addPoint(point_t_1, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_temp_2,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_t_2 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[4].addPoint(point_t_2, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_temp_3,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_t_3 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[5].addPoint(point_t_3, true, true);
+					}
+				});
+				
+				
+				$.ajax({
+					url : query_umi_1,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_u_1 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[6].addPoint(point_u_1, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_umi_2,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						console.log("ajax success");
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_u_2 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[7].addPoint(point_u_2, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_umi_3,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_u_3 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[8].addPoint(point_u_3, true, true);
+					}
+				});
+				
+				
+				$.ajax({
+					url : query_co2_1,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_co2_1 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[0].addPoint(point_co2_1, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_co2_2,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_co2_2 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[1].addPoint(point_co2_2, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_co2_3,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_co2_3 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart_multiple.series[2].addPoint(point_co2_3, true, true);
+					}
+				});
+				
+			}
+			else{
+				query_temp = week_query_ver + draint + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_umi = week_query_ver + drainu + "?start=" + yesterday + "&timeAggregation=HOUR";
+				query_co2 =  week_query_ver + drainco2 + "?start=" + yesterday + "&timeAggregation=HOUR";
+				console.log(query_co2);
+				
+				//ajax per eseguire le query
+				$.ajax({
+					url : query_temp,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_t = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart.series[1].addPoint(point_t, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_umi,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_u = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart.series[2].addPoint(point_u, true, true);
+					}
+				});
+				
+				$.ajax({
+					url : query_co2,
+					type : "GET",
+					dataType : "jsonp",
+					success : function(data) {
+						var count = data.measures.length;
+						for ( var i = 0; i < count; i++) {
+							point_co2 = roundtwo(data.measures[i].value);
+						}
+						
+					},
+					error : function(xhr, ajaxOptions, thrownErrorxhr){
+						console.log(xhr.status);
+						console.log(thrownErrorxhr.message);
+					},
+					complete: function(){
+						chart.series[0].addPoint(point_co2, true, true);
+					}
+				});
+			}
+		}
+		else{
+			console.log("non è cambiata l'ora");
+		}
+		
+	}, 10 * 3600 * 1000)
+
+});
+
+</script>
+
+<div class="grafico_tempumico2">
+
+	<div id="grafico_tuc"></div>
+	
+</div>

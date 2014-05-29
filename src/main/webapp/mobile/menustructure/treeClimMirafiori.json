@@ -1,0 +1,22 @@
+[{  "children":[],              
+	"id":"AulaStudio",
+    "name":"Study Hall",
+    "description":"Aula studio Mirafiori",
+    "drains" : [ 
+    	{ "description" : "",
+          "id" : "MIR_HVAC_STU_GEN_T",
+          "name" : "Temperatura",
+          "type" : "Temperature"
+        },
+        { "description" : "",
+          "id" : "MIR_HVAC_STU_GEN_UR",
+          "name" : "Umidità",
+          "type" : "RelativeHumidity"
+        },
+        { "description" : "",
+          "id" : "MIR_HVAC_STU_GEN_LUM",
+          "name" : "Illuminanza",
+          "type" : "Illuminance"
+        }
+      ]
+}]

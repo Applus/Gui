@@ -1,0 +1,437 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width">
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/new_general.js"></script>
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/style_clim.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+				$('button').button();
+				$("#back").click(function() {
+					window.history.back();
+				});
+
+				//prendo il nome del locale che sto visualizzando
+				var name = GetURLParameter('name');
+				console.log('name = ' + name);
+				if (name == 'Gallery') {
+					$('.left_bottom_container').addClass("invisible");
+				}
+				else{
+					$('.left_bottom_container').removeClass("invisible");
+				}
+
+				if (name == 'Polytechnic%20Office'
+						|| name == 'Polytechnic%20Meeting%20Room') {
+					$("#content-pannello").addClass('invisible');
+				} else {
+					$("#content-pannello").removeClass('invisible');
+				}
+
+				//prendo i valori puntuali di temperatura, umidità e co2
+				var temp = GetURLParameter('Temperature');
+				//posso salvare una variabile booleana se ho più di un sensore
+				var multiple_temp = false;
+				var temp_array = temp.split("|");
+				if (temp_array.length > 1) {
+					$("#temp-value-1").removeClass('invisible');
+					$("#temp-value-1").next().removeClass('invisible');
+					$("#temp-value-2").removeClass('invisible');
+					$("#temp-value-2").next().removeClass('invisible');
+					$("#temp-value-3").removeClass('invisible');
+					$("#temp-value-3").next().removeClass('invisible');
+					$("#temp-value").addClass('invisible');
+					$("#temp-value").next().addClass('invisible');
+					multiple_temp = true;
+				} else {
+					$("#temp-value-1").addClass('invisible');
+					$("#temp-value-1").next().addClass('invisible');
+					$("#temp-value-2").addClass('invisible');
+					$("#temp-value-2").next().addClass('invisible');
+					$("#temp-value-3").addClass('invisible');
+					$("#temp-value-3").next().addClass('invisible');
+					$("#temp-value").removeClass('invisible');
+					$("#temp-value").next().removeClass('invisible');
+					multiple_temp = false;
+				}
+
+				var umi = GetURLParameter('RelativeHumidity');
+
+				//posso salvare una variabile booleana se ho più di un sensore
+				var multiple_umi = false;
+				var umi_array = umi.split("|");
+				if (umi_array.length > 1) {
+					$("#umi-value-1").removeClass('invisible');
+					$("#umi-value-1").next().removeClass('invisible');
+					$("#umi-value-2").removeClass('invisible');
+					$("#umi-value-2").next().removeClass('invisible');
+					$("#umi-value-3").removeClass('invisible');
+					$("#umi-value-3").next().removeClass('invisible');
+					$("#umi-value").addClass('invisible');
+					$("#umi-value").next().addClass('invisible');
+					multiple_umi = true;
+				} else {
+					$("#umi-value-1").addClass('invisible');
+					$("#umi-value-1").next().addClass('invisible');
+					$("#umi-value-2").addClass('invisible');
+					$("#umi-value-2").next().addClass('invisible');
+					$("#umi-value-3").addClass('invisible');
+					$("#umi-value-3").next().addClass('invisible');
+					$("#umi-value").removeClass('invisible');
+					$("#umi-value").next().removeClass('invisible');
+					multiple_umi = false;
+				}
+
+				var co2 = GetURLParameter('CO2');
+				var multiple_co2 = false;
+				var co2_array = co2.split("|");
+				if (co2_array.length > 1) {
+					$("#co2-value-1").removeClass('invisible');
+					$("#co2-value-1").next().removeClass('invisible');
+					$("#co2-value-2").removeClass('invisible');
+					$("#co2-value-2").next().removeClass('invisible');
+					$("#co2-value-3").removeClass('invisible');
+					$("#co2-value-3").next().removeClass('invisible');
+					$("#co2-value").addClass('invisible');
+					$("#co2-value").next().addClass('invisible');
+					multiple_co2 = true;
+				} else {
+					$("#co2-value-1").addClass('invisible');
+					$("#co2-value-1").next().addClass('invisible');
+					$("#co2-value-2").addClass('invisible');
+					$("#co2-value-2").next().addClass('invisible');
+					$("#co2-value-3").addClass('invisible');
+					$("#co2-value-3").next().addClass('invisible');
+					$("#co2-value").removeClass('invisible');
+					$("#co2-value").next().removeClass('invisible');
+					multiple_co2 = false;
+				}
+
+				var valvola = GetURLParameter('Valvola');
+
+				//costruisco le query
+
+				var query_temp;
+				var query_temp_1;
+				var query_temp_2;
+				var query_temp_3;
+				if (multiple_temp == false) {
+					query_temp = minute_query_ver + temp;
+					
+				} else {
+					query_temp_1 = minute_query_ver + temp_array[0];
+					query_temp_2 = minute_query_ver + temp_array[1];
+					query_temp_3 = minute_query_ver + temp_array[2];
+				}
+
+				var query_umi;
+				var query_umi_1;
+				var query_umi_2;
+				var query_umi_3;
+				if (multiple_temp == false) {
+					query_umi = minute_query_ver + umi;
+				} else {
+					query_umi_1 = minute_query_ver + umi_array[0];
+					query_umi_2 = minute_query_ver + umi_array[1];
+					query_umi_3 = minute_query_ver + umi_array[2];
+				}
+
+				var query_co2;
+				var query_co2_1;
+				var query_co2_2;
+				var query_co2_3;
+
+				if (multiple_co2 == false) {
+					query_co2 = minute_query_ver + co2;
+				} else {
+					query_co2_1 = minute_query_ver + co2_array[0];
+					query_co2_2 = minute_query_ver + co2_array[1];
+					query_co2_3 = minute_query_ver + co2_array[2];
+				}
+
+				var query_valvola = minute_query_ver + valvola;
+
+				//variabili per memorizzare le values 
+				var temp_value;
+				var temp_value_1;
+				var temp_value_2;
+				var temp_value_3;
+
+				var umi_value;
+				var umi_value_1;
+				var umi_value_2;
+				var umi_value_3;
+
+				var co2_value;
+				var co2_value_1;
+				var co2_value_2;
+				var co2_value_3;
+
+				var valvola_value;
+
+				//chiamate ajax per eseguire le query
+
+				//valvola
+				clim_instant_query(query_valvola, $("#valv-value"));
+
+				if (multiple_temp == false) {
+					//temp
+					clim_instant_query(query_temp, $("#temp-value"));
+				} else {
+					clim_instant_query(query_temp_1, $("#temp-value-1"));
+					clim_instant_query(query_temp_2, $("#temp-value-2"));
+					clim_instant_query(query_temp_3, $("#temp-value-3"));
+				}
+
+				if (multiple_umi == false) {
+					//umi 
+					clim_instant_query(query_umi, $("#umi-value"));
+				} else {
+					clim_instant_query(query_umi_1, $("#umi-value-1"));
+					clim_instant_query(query_umi_2, $("#umi-value-2"));
+					clim_instant_query(query_umi_3, $("#umi-value-3"));
+				}
+
+				if (multiple_co2 == false) {
+					//co2 
+					clim_instant_query(query_co2, $("#co2-value"));
+				} else {
+					clim_instant_query(query_co2_1, $("#co2-value-1"));
+					clim_instant_query(query_co2_2, $("#co2-value-2"));
+					clim_instant_query(query_co2_3, $("#co2-value-3"));
+				}
+
+				//interval per le query ogni 10 min 
+				setInterval(
+						function() {
+							//valvola
+							query_valvola = minute_query_ver + valvola;
+							clim_instant_query(query_valvola, $("#valv-value"));
+
+							if (multiple_temp == false) {
+								//temp
+								query_temp = minute_query_ver + temp;
+								clim_instant_query(query_temp, $("#temp-value"));
+							} else {
+								query_temp_1 = minute_query_ver + temp_array[0];
+								query_temp_2 = minute_query_ver + temp_array[1];
+								query_temp_3 = minute_query_ver + temp_array[2];
+								
+								clim_instant_query(query_temp_1, $("#temp-value-1"));
+								clim_instant_query(query_temp_2, $("#temp-value-2"));
+								clim_instant_query(query_temp_3, $("#temp-value-3"));
+							}
+
+							if (multiple_umi == false) {
+								//umi 
+								query_umi = minute_query_ver + umi;
+								clim_instant_query(query_umi, $("#umi-value"));
+							} else {
+								query_umi_1 = minute_query_ver + umi_array[0];
+								query_umi_2 = minute_query_ver + umi_array[1];
+								query_umi_3 = minute_query_ver + umi_array[2];
+								
+								clim_instant_query(query_umi_1, $("#umi-value-1"));
+								clim_instant_query(query_umi_2, $("#umi-value-2"));
+								clim_instant_query(query_umi_3, $("#umi-value-3"));
+							}
+
+							if (multiple_co2 == false) {
+								//co2 
+								query_co2 = minute_query_ver + co2;
+								clim_instant_query(query_co2, $("#co2-value"));
+							} else {
+								query_co2_1 = minute_query_ver + co2_array[0];
+								query_co2_2 = minute_query_ver + co2_array[1];
+								query_co2_3 = minute_query_ver + co2_array[2];
+								clim_instant_query(query_co2_1, $("#co2-value-1"));
+								clim_instant_query(query_co2_2, $("#co2-value-2"));
+								clim_instant_query(query_co2_3, $("#co2-value-3"));
+							}
+						}, 10000 * 60);
+			});
+</script>
+
+<title>Applus Energie</title>
+</head>
+<body>
+
+
+	<!-- racchiudo tutto in un div application -->
+
+	<div class="application">
+
+		<div class="intestazione">
+			<!-- aggiungo il bottone per aprire il pannello di navigazione  -->
+			<button id="back">Back</button>
+			<div ng-include src="'nomeAula.html'"></div>
+			<div ng-include src="'data.html'"></div>
+		</div>
+
+		<div class="left_container_big_up_plus">
+
+			<div ng-include src="'graficoTempUmiCO2.html'"></div>
+
+		</div>
+
+
+		<div class="right_container_small_up_plus">
+
+			<div class="right_container_inside_up_plus">
+
+				<div class="sottotitolo">Current Temperature</div>
+				<div class="content">
+					<div class="content_img">
+						<img class="logo" src="img/logo-temp.jpg" alt="logo_temp" />
+					</div>
+
+					<div class="value">
+						<span id="temp-value">--</span> <span> °C</span> <span
+							id="temp-value-1" class='invisible'>--</span> <span
+							class='invisible'> °C</span> <br> <span id="temp-value-2"
+							class='invisible'>--</span> <span class='invisible'> °C</span> <br>
+						<span id="temp-value-3" class='invisible'>--</span> <span
+							class='invisible'> °C</span> <br>
+					</div>
+				</div>
+
+			</div>
+			<div class="right_container_inside_middle_plus">
+
+				<div class="sottotitolo">Current Relative Humidity</div>
+				<div class="content">
+					<div class="content_img">
+						<img class="logo" src="img/logo-umi.jpg" alt="logo_umi" />
+					</div>
+
+					<div class="value">
+						<span id="umi-value"> --</span> <span> %</span> <span
+							id="umi-value-1" class='invisible'>--</span> <span
+							class='invisible'> %</span> <br> <span id="umi-value-2"
+							class='invisible'>--</span> <span class='invisible'> %</span> <br>
+						<span id="umi-value-3" class='invisible'>--</span> <span
+							class='invisible'> %</span> <br>
+					</div>
+				</div>
+
+
+				<div class="right_container_inside_bottom_plus">
+					<div class="sottotitolo">Current CO2</div>
+					<div class="content">
+						<div class="content_img">
+							<img class="logo" src="img/logo-co2.jpg" alt="logo_co2" />
+						</div>
+
+						<div class="value">
+							<span id="co2-value">--</span> <span> ppm</span> <span
+								id="co2-value-1" class='invisible'>--</span> <span
+								class='invisible'> ppm</span> <br> <span id="co2-value-2"
+								class='invisible'>--</span> <span class='invisible'> ppm</span>
+							<br> <span id="co2-value-3" class='invisible'>--</span> <span
+								class='invisible'> ppm</span> <br>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="left_container_big_bottom_less">
+
+			<div class="left_bottom_container">
+				<div class="left" id="content-aerazione">
+					<div class="sottotitolo">Ventilation</div>
+					<div class="content">
+						<div class="content_img">
+							<img class="logo_piccolo" src="img/logo-aer.jpg" alt="logo_aer" />
+						</div>
+
+						<div class="value bottom">
+							<div>
+								<span>Status:</span> <span id="aer-value"> ON </span>
+							</div>
+							<div>
+								<span>Damper opened:</span> <span id="serr-value">100</span> <span>
+									% </span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="right" id="content-pannello">
+					<div class="sottotitolo">Heating panel</div>
+					<div class="content">
+						<div class="content_img">
+							<img class="logo_piccolo" src="img/logo-pann.jpg" alt="logo_pann" />
+						</div>
+
+						<div class="value bottom">
+							<div>
+								<span>Status:</span> <span id="pann-value"> OFF </span>
+							</div>
+							<div>
+								<span>Valve opened:</span> <span id="valv-value">--</span> <span>
+									%</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="right_bottom_container">
+				<div ng-include src="'youropinion.html'"></div>
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+
+
+<!-- script jquery -->
+
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+<!-- script highcharts -->
+<script type="text/javascript" src="js/highcharts.js"></script>
+<!-- script highstock -->
+<script type="text/javascript" src="js/highstock.js"></script>
+<!-- script highcharts more -->
+<script type="text/javascript" src="js/highcharts-more.js"></script>
+<!--  Custom theme -->
+<script type="text/javascript" src="js/chart.theme.js"></script>
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+</html>

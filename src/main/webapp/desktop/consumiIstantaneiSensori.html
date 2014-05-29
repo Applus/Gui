@@ -1,0 +1,93 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript" src="js/sensorname.js"> </script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#valori").empty();
+		
+		//prendo dei sensori dall'url 
+		var sensori = GetURLParameter('power'); 
+		var sensoriarray = sensori.split('|');
+		var place = GetURLParameter('place');
+		var ist_query;
+		var initial_value=[];
+		
+		if(sensoriarray.length>1){
+			//faccio un ciclo che aggiunge uno spazio per ogni sensore
+			for(var j=0; j<sensoriarray.length; j++){
+				(function(j){
+					var sens = sensoriarray[j];
+					var p = $("<p id='"+sens+"p' class='sensori'></p>").appendTo($("#valori"));
+					$("<span id='"+sens+"'>").appendTo(p);
+					$("<span class='value'>").appendTo(p);
+					$("<span>").text(" W").appendTo(p);
+					if(place=='verres'){
+						ist_query = instant_query_ver + sens; 
+					}
+					if(place=='mirafiori'){
+						ist_query = instant_query_mir + sens; 
+					}
+					$.ajax({
+						url: ist_query,
+						dataType: 'jsonp',
+						success: function(data){
+							initial_value[j] = data.value;
+							$("#"+sens).text(sensorname[sens]+": ");
+							$("p#"+sens+"p>span.value").text(" "+round(initial_value[j]));
+						}
+					});
+				})(j);
+			}
+			
+			 setInterval(function(){
+				//$("span.value").html(''); 
+				var i=0;
+				var ist_value = [];
+				for(i = 0; i <sensoriarray.length; i++){
+					(function(i){
+						var sens = sensoriarray[i];
+						if(place=='verres'){
+							ist_query = instant_query_ver + sens; 
+						}else{
+							ist_query = instant_query_mir + sens; 
+						}
+						$.ajax({
+							url: ist_query,
+							dataType: 'jsonp',
+							success: function(data){
+								ist_value[i] = data.value;
+								
+								//prendo il valore attuale dello span
+								//var span = $("p#"+sens+">span.value");
+								$("p#"+sens+"p>span.value").text(" "+round(ist_value[i]));
+							}
+						});
+					})(i);
+				}
+			}, 10000); 
+		}
+		else{
+			$("#cont").load('consumoEquivalente.html');
+		}
+	
+		
+		
+	});
+</script>
+<div id="cont">
+	<div id="valore_istantaneo_sensori">
+	 <p style="padding-top:15px;">Current consumption per sensor</p>
+	 <div id="valori">
+	 
+	 </div>
+</div>
+</div>

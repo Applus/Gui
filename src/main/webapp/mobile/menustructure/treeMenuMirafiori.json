@@ -1,0 +1,105 @@
+[{                
+	"id":"AulaStudio",
+    "name":"Study hall",
+    "description":"Study hall Mirafiori",
+     "drains":[
+             {
+              "id":" MIR_ELE_STU_P",
+              "name":" MIR_ELE_STU_P",
+              "description":"study hall mirafiori total power",
+              "total":true,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_P",
+              "name":"MIR_ELE_STU_P",
+              "description":"study hall mirafiori total energy",
+              "total":true,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT1_LUCE1_P",
+              "name":"Light 1",
+              "description":"light 1 power",
+              "total":false,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_MT1_LUCE2_P",
+              "name":"Light 2",
+              "description":"Light 2 power",
+              "total":false,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_MT1_BANCO1_P",
+              "name":"Desk 1",
+              "description":"Desk 1 power",
+              "total":false,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_BANCO2_P",
+              "name":"Desk 2",
+              "description":"Desk 2 power",
+              "total":false,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_BANCO3_P",
+              "name":"Desk 3",
+              "description":"Desk 3 power",
+              "total":false,
+              "type":"ActivePower"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_MON_P",
+              "name":"Monitoring",
+              "description":"monitoring power",
+              "total":false,
+              "type":"ActivePower"
+              }, 
+              {
+              "id":"MIR_ELE_STU_MT1_LUCE1_P",
+              "name":"Light 1",
+              "description":"Light 1 energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT1_LUCE2_P",
+              "name":"Light 2",
+              "description":"Light 2 energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT1_BANCO1_P",
+              "name":"Desk 1",
+              "description":"Desk 1 energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_BANCO2_P",
+              "name":"Desk 2",
+              "description":"Desk 2 energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_BANCO3_P",
+              "name":"Desk 3",
+              "description":"Desk 3 energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              },
+              {
+              "id":"MIR_ELE_STU_MT2_MON_P",
+              "name":"Monitoring",
+              "description":"Monitoring energy",
+              "total":false,
+              "type":"ActiveEnergy"
+              }
+             ]
+}]

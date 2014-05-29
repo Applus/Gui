@@ -1,0 +1,401 @@
+/*******************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+*******************************************************************************/
+
+/* default value */
+body{
+		font-family: 'Roboto', sans-serif;
+		background-color: black;
+	}
+
+/* contenitori template */
+	.container_1{
+		width:100%;
+	}
+	.container_2{
+		width:80%;
+		float:left;
+		border-color:white;
+		border-width: 2px;
+	}
+	.container_3{
+		width:18%;
+		float:right;
+		border-color:white;
+		border-width: 2px;
+	}
+	
+/* elementi all'interno dei contenitori */
+
+/* grafico orario */
+.grafico_centrale {
+	background-color: #2D2D2D;
+	border-radius: 15px;
+	color: white;
+	margin-top: 5px;
+	width: 80%;
+	float: left;
+	text-align: center;
+}
+
+#chart {
+	width: 100%;
+}
+
+/* gauge con consumo istantaneo */
+.grafico_istantaneo {
+	background-color: #2D2D2D;
+	border-radius: 15px;
+	color: white;
+	margin-top: 5px;
+	width: 18%;
+	float: right;
+	text-align: center;
+}
+
+#gauge {
+	width: 100%;
+}
+
+/* consumo equivalente */
+.co2_equivalente {
+	background-color: #2D2D2D;
+	border-radius: 15px;
+	color: white;
+	margin-top: 5px;
+	width: 100%;
+	text-align: center;
+}
+#CO2_chart{
+	width: 90%;
+}
+#footprint{
+	width : 10%;
+	float:left;
+}
+
+/* ecoconsiglio*/
+#eco_consigli{
+		background-color:#2D2D2D; 
+		border-radius: 15px;
+		color: white; 
+		margin-top:5px;
+		width:18%;
+		float: right;
+	}
+	#immagine{
+		width : 20%;
+		float: left;
+	}
+	#ecoconsiglio{
+		float: right;
+	}
+	#titolo_consiglio{
+		text-align: center;
+		clear: both;
+	}
+	
+	.testo_consiglio, #pericolo_giallo{
+		float:right;
+		padding:3px;
+	
+	}
+/* grafico settimanale */
+.grafico_settimana{
+		background-color:#2D2D2D; 
+		border-radius: 15px;
+		color: white; 
+		margin-top:5px;
+		margin-left:2%;
+		margin-right:2%;
+		width:60%;
+		float: left;
+
+	}
+	#week_chart {
+		width:100%;
+	}
+	
+/* immagine identificativa aula */
+#div_immagine{
+	background-color:#2D2D2D; 
+	border-radius: 15px;
+	color: white; 
+	margin-top:5px;
+	width:18%; 
+
+	float:left; 
+	text-align:center;
+}
+
+#foto{
+	width:80%;
+}
+.data_ora{
+	background-color:#2D2D2D; 
+	-webkit-border-radius: 15px;
+-moz-border-radius: 15px;
+border-radius: 15px;
+	color: white; 
+	width:18%; 
+	float:right; 
+	text-align:center;
+	font-size: large;
+
+} 
+
+#data{
+	float: left;
+		padding:5px;
+}  
+#ora{
+	float: right;
+		padding:5px;
+}
+.nome_aula{
+	color: white; 
+	width:80%;
+	float:left; 
+	text-align:center;
+}   
+
+
+/* media query */
+
+/* /*  WIDTH --> CAMBIO DISPOSIZIONE DEGLI ELEMENTI */
+#### Mobile Phones Portrait ####
+@media screen and (min-device-width: 480px)  and (orientation: portrait){
+  .data_ora{
+    float:none;
+	clear:both;
+    width:100%;
+	}
+	.nome_aula{
+        float:none;
+        clear:both;
+        width:100%;
+    }
+    #data{
+        float: none;
+    }  
+    #ora{
+    	float: none;		
+    }
+    
+    imposto il grafico centrale con width 100%
+    .grafico_centrale{
+        width:100%;
+    }
+    .grafico_istantaneo{
+        width:100%;
+    }
+    
+    cambio la disposizione degli elementi in container 2
+    .container_2{
+        width:100%;
+    }    
+    
+    .grafico_settimana{
+        float:right;   
+        width:70%;
+        margin-right:0;
+        margin-left:0;
+    }
+    l'immegine e l'ecoconsiglio hanno float left e height 50% ciascuno???
+    #div_immagine{
+        float:left;
+        height:50%;
+        width:28%;
+    }
+    
+}
+
+#### Mobile Phones Landscape ####
+@media screen and (max-device-width: 640px) and (orientation: landscape){
+    
+	.data_ora{
+		float:none;
+        clear:both;
+         width:100%;
+	}
+	.nome_aula{
+        color:yellow;
+        float:none;
+        clear:both;
+         width:100%;
+    }
+    #data{
+        float: none;
+    }  
+    #ora{
+        float: none;		
+    }
+    imposto il grafico centrale con width 100%
+    .grafico_centrale{
+        width:100%;
+    }
+    .grafico_istantaneo{
+        width:100%;
+    }
+    cambio la disposizione degli elementi in container 2
+    .container_2{
+        width:100%;
+    }    
+    .grafico_settimana{
+        float:right;  
+        width:70%;
+         margin-right:0;
+        margin-left:0;
+    }
+    l'immegine e l'ecoconsiglio hanno float left e height 50% ciascuno???
+    #div_immagine{
+        float:left;
+        height:50%;
+        width:28%;
+    }
+}
+
+#### Mobile Phones Portrait or Landscape ####
+@media screen and (max-device-width: 640px){
+    .data_ora{
+       float:none;
+    	clear:both;
+         width:100%;
+	}
+	.nome_aula{
+       float:none;
+        clear:both;
+         width:100%;
+    }
+    #data{
+        float: none;
+    }  
+    #ora{
+        float: none;		
+    }
+    imposto il grafico centrale con width 100%
+    .grafico_centrale{
+        width:100%;
+    }
+    .grafico_istantaneo{
+        width:100%;
+    }
+    cambio la disposizione degli elementi in container 2
+    .container_2{
+        width:100%;
+    }        
+    .grafico_settimana{
+        float:right; 
+        width: 70%;
+         margin-right:0;
+        margin-left:0;
+    }
+    l'immegine e l'ecoconsiglio hanno float left e height 50% ciascuno???
+    #div_immagine{
+        float:left;
+        height:50%;
+        width:28%;
+    }
+}
+
+#### iPhone 4+ Portrait or Landscape ####
+@media screen and (max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2){
+     .data_ora{
+        float:none;
+        clear:both;
+        width:100%;
+	}
+	.nome_aula{
+        width:100%;
+        float:none;
+        clear:both;
+    }
+    #data{
+        float: none;
+    }  
+    #ora{
+        float: none;		
+    }
+    imposto il grafico centrale con width 100%
+    .grafico_centrale{
+        width:100%;
+    }
+    .grafico_istantaneo{
+        width:100%;
+    }
+    cambio la disposizione degli elementi in container 2
+    .container_2{
+        width:100%;
+    }    
+    .grafico_settimana{
+        float:right;  
+        width:70%;
+         margin-right:0;
+        margin-left:0;
+    }
+    l'immegine e l'ecoconsiglio hanno float left e height 50% ciascuno???
+    #div_immagine{
+        float:left;
+        width:28%;
+        height:50%;
+    }
+}
+la width su tablet e desxtop non mi serve, perch� � definito di default
+#### Tablets Portrait or Landscape ####
+@media screen and (min-device-width: 768px) and (max-device-width: 1024px){
+  some CSS here
+}
+
+#### Desktops ####
+@media screen and (min-width: 1024px){
+  some CSS here
+
+} */
+
+/* HEIGHT --> ADATTO L'ALTEZZA DEGLI ELEMENTI */
+@media screen and (max-device-height:600px) {
+	#chart, #gauge{
+		height:150px;
+	}
+	#CO2_chart, #eco_consigli, #week_chart, #div_immagine{
+		height: 100px; 
+	}
+}
+@media screen and (min-device-height:768px) and (max-device-height:768px) {
+	#chart, #gauge{
+		height:362px;
+	}
+	#CO2_chart, #eco_consigli, #week_chart, #div_immagine{
+		height: 170px; 
+	}
+}
+
+/*definizione layout per tablet e pc*/
+
+@media screen and (min-device-height:864px) and (max-device-height:1024px){
+	#chart, #gauge{
+		height:416px;
+	}
+	#CO2_chart, #eco_consigli, #week_chart, #div_immagine{
+		height: 233px;
+	}
+}
+	
+@media screen and (min-device-height:1050px) and (max-device-height:1536px){
+	#chart, #gauge{
+		height: 550px;
+	}
+	#CO2_chart, #eco_consigli, #week_chart, #div_immagine{
+		height: 270px;
+	}
+}  
+
+
+

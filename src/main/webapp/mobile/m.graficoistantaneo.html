@@ -1,0 +1,132 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script >
+var name, unit, value;
+var query_ist;
+var g;
+//min e max per il gauge
+var max;
+
+var url = sessionStorage.getItem('url');
+var totalpower = GetURLParameter('totalpower', url);
+
+//check the place from session storage
+var place = GetURLParameter('place', url);
+
+if(place=="verres"){
+	query_db = verres_query_db;
+	query_dwh = verres_query_dwh;
+}
+
+var now = (moment()/1000).toFixed(0);
+if(place=="verres"){
+	query_ist = instant_query_ver + totalpower
+}
+else if (place=="mirafiori"){
+	query_ist = instant_query_mir + totalpower
+}
+
+var query_last_hour_tot = query_db + totalpower+"?end="+now+"&limit=360&reversed=true";
+var last_hour_tot = new Array();
+//prendo la larghezza del pixel in div
+var w1 = $('.grafico_istantaneo').width();
+$('#gauge').css({
+	width: w1,
+	height: w1/1.25
+});
+
+
+
+	
+	//variabili per i dati del grafico
+	//chiamata ajax per il dato
+	$.ajax({
+		url : query_ist,
+		dataType : "jsonp",
+		error : function(x, t, r) {
+			console.log(x.response.message); 
+		},
+		success : function(data) {
+			
+			name = data.drain;
+			value = data.value;
+			
+		},
+		complete : function(qXHR, textStatus) {
+			var label = "W";
+			if(value>10000){
+				value = (value/1000).toFixed(2);
+				label = "kW";
+			}
+			else{
+				value = value.toFixed(0);
+			}
+			
+			var newvalue = parseFloat(value)+parseFloat((value/3));
+			max = Math.pow(10,(Math.ceil(log10(newvalue))));
+			
+			
+			//se il div che contiene il grafico ha giÃ  il contenuto
+			if ($("#gauge").text().length > 0) {
+			     //lo svuoto
+			     $("#gauge").empty();
+			}
+			
+			g = new JustGage({
+			    id: "gauge", 
+			    value: value, 
+			    valueFontColor: 'white',
+			    min: 0,
+			    max: max,
+			    title: "Current Consumption",
+			    titleFontColor: "white",
+			    label: label
+			  }); 
+			setInterval(function(){
+				$.ajax({
+					url : query_ist,
+					dataType : "jsonp",
+					error : function(x, t, r) {
+						console.log(x.response.message); 
+					},
+					success : function(data) {
+						
+						name = data.drain;
+						value = data.value;
+					},
+					complete : function(qXHR, textStatus) {
+						var label = "W";
+						if(value>10000){
+							value = (value/1000).toFixed(2);
+							label = "kW";
+						}
+						else{
+							value = value.toFixed(0);
+						}
+						
+						g.refresh(value);
+					}
+				//fine chiamata ajax
+				});
+			}, 10000);
+		}
+	//fine chiamata ajax
+	});
+		
+</script> 
+
+
+	<div class="grafico_istantaneo" >
+		<div id="gauge"></div>
+	</div>
+
+	

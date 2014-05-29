@@ -1,0 +1,57 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Applus Energie</title>
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+<link rel="stylesheet" type="text/css"
+	href="css/jquery-ui-1.10.0.custom.min.css">
+<script type="text/javascript" src="js/mdetect.js"></script>
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+				var useragent = navigator.userAgent.toLowerCase();
+
+				InitDeviceScan();
+				if ((DetectTierTablet() == true) || (DetectIpad() == true) || (DetectAndroidTablet() == true)
+						|| (DetectPalmWebOS() == true)) {
+
+					location.href = "mobileVersion.html";
+
+				} else if ((isIphone == true) || (DetectAndroidPhone() == true) || (DetectBlackBerryTablet() == true)
+						|| (DetectWebOSTablet() == true) || (DetectWindowsMobile() == true) || (DetectWindowsPhone7() == true)) {
+
+					//redirect alla pagine con due bottoni
+					location.href = "mobileVersion.html";
+
+				} else {
+
+					location.href = "desktop/index.html";
+				}
+
+			});
+</script>
+</body>
+
+<!-- div che conterrà la dialog window  -->
+<div id="dialog-confirm">
+	<p>
+		<span class="ui-icon ui-icon-alert"
+			style="font-size: small; float: left; margin: 0 7px 20px 0;"></span>
+		Vuoi passare alla versione mobile del sito?
+	</p>
+</div>
+
+</html>

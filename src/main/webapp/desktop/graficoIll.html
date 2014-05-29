@@ -1,0 +1,220 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+	var chart;
+	var last_month;
+	var last_day;
+	var last_year;
+	//devo prendere l'ora attuale 
+	var today = moment();
+	var year = today.year();
+	var month = today.month()+1;
+	var day = today.date();
+	var hour = (today.subtract('hour', 1)).hour();
+	console.log(month+" "+ day + " " + hour);
+	var place = GetURLParameter('place');
+	
+	var point_interval = 3600 * 1000; //one hour 
+	
+	var ill_values=[];
+	
+	//prendo le 24 ore precedenti 
+	//devo sapere anche mese e anno 
+	
+	//se sono a mezzanotte, non devo cambiare giorno precedente (cioè le 23 di hour dato che ho sottratto 1)
+	var last_hour;
+	if(hour == 23){
+		last_day = day;
+		last_month = month;
+		last_year= year;
+		last_hour = moment().subtract('hour', 23).hour();
+		
+	}
+	else{
+		var last = moment().subtract('hour', 23);
+		last_day = last.date();
+		last_month=last.month()+1;
+		last_year=last.year();
+		last_hour = last.hour();
+	}
+	//time zone
+	var time_zone=moment().format("ZZ");
+	time_zone.toString();
+	var tz="%2B";
+	for(n=1;n<time_zone.length;n++){
+		tz=tz+time_zone[n];
+	}
+	
+	/*IERI*/
+	var yesterday=moment().subtract('days', 1).format("YYYY-MM-DDTHH:mm:ss");
+	yesterday=yesterday+tz;
+	
+	//devo prendere il parametro dall'url
+	var drain = GetURLParameter("Illuminance");
+	
+	if(place=="verres"){
+		var query_ill = week_query_ver + drain +"?start=" + yesterday + "&timeAggregation=HOUR";
+	}
+	if(place=="mirafiori"){
+		var query_ill = week_query_mir + drain +"?start=" + yesterday + "&timeAggregation=HOUR";
+	}
+	
+	//chiamata ajax per la query
+	$.ajax({
+		url : query_ill,
+		type : "GET",
+		dataType : "jsonp",
+		async : false,
+		success : function(data) {
+			console.log("ajax success");
+			var count = data.measures.length;
+			console.log(count);
+			for ( var i = 0; i < count; i++) {
+				var time = moment(data.measures[i].time);
+				var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+				var obj = new Array();
+				obj[0]=date;
+				obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+				
+				ill_values[i] = obj;
+			}
+		},
+		error : function(xhr, ajaxOptions, thrownErrorxhr){
+			console.log(xhr.status);
+			console.log(thrownErrorxhr.message);
+		},
+		complete: function(){
+			
+			chart = new Highcharts.Chart({
+		         chart: {
+		             renderTo: 'grafico_i'
+		         },
+		         title: {
+		             text: 'Illuminance'
+		         },
+		         subtitle: {
+		             text: 'Last 24 hours'
+		         },
+				 xAxis: {
+	                type: 'datetime',
+	                title: {
+	                    text: null
+	                }
+	            },
+		         yAxis: [{ // Primary yAxis
+		             labels: {
+		                 formatter: function() {
+		                     return this.value +'lx';
+		                 },
+		                 style: {
+		                     color: '#ffd70f'
+		                 }
+		             },
+		             title: {
+		                 text: 'Illuminance',
+		                 style: {
+		                     color: '#ffd70f'
+		                 }
+		             },
+		             min: 0
+		           
+		         }],
+		         tooltip: {
+		             shared: true
+		         },
+		         legend: {
+		             layout: 'vertical',
+		             align: 'right',
+		             verticalAlign: 'top'
+		         },
+		         series: [{
+		             name: 'Illuminance',
+		             color: '#ffd70f',
+		             type: 'spline',
+		             yAxis: 0,
+		             data: ill_values,
+		             pointStart: Date.UTC(last_year, last_month-1, last_day,last_hour, 0 ),
+			         pointInterval: point_interval, 
+		             tooltip: {
+		                 valueSuffix: ' lx'
+		             }
+		 
+		         }]
+		     });
+		}
+	});
+	
+	//ogni 10 minuti controllo se è cambiata l'ora corrente
+	//se si devo ridisegnare il grafico
+	setInterval(function(){
+		var point;
+		//prendo data e ora attuale
+		var actual_date = moment();
+		var current_hour = (actual_date.subtract('hour', 1)).hour()
+		
+		console.log(hour);
+		console.log(current_hour);
+		if(current_hour > hour || (current_hour == 0 && hour != 0)){
+			//è passata l'ora
+			console.log('è passata l ora');
+			hour = current_hour;
+			
+			//prendo solo il dato relativo ad hour
+			if(place==verres){
+				query_ill=week_query_ver + drain + "?start=" + yesterday + "&timeAggregation=HOUR";
+			}	
+			if(place==mirafiori){
+				query_ill=week_query_mir + drain + "?start=" + yesterday + "&timeAggregation=HOUR";
+			}
+			console.log(query_ill);
+			
+			//aggiorno il grafico
+			
+			 $.ajax({
+				url : query_ill,
+				type : "GET",
+				dataType : "jsonp",
+				success : function(data) {
+					console.log("ajax success");
+					var count = data.measures.length;
+					console.log(count);
+					for ( var i = 0; i < count; i++) {
+						point = roundtwo(data.measures[i].value);
+					}
+					
+				},
+				error : function(xhr, ajaxOptions, thrownErrorxhr){
+					console.log(xhr.status);
+					console.log(thrownErrorxhr.message);
+				},
+				complete: function(){
+					
+					chart.series[0].addPoint(point, true, true);
+				}
+			}); 
+			
+			
+		}
+		else {
+			console.log("non è cambiata l'ora");
+		}
+	}, 10 * 3600 * 1000);
+});
+
+</script>
+
+<div class="grafico_ill">
+
+	<div id="grafico_i"></div>
+</div>

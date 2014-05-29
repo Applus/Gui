@@ -1,0 +1,114 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="viewport" content="width=device-width">
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+
+<!-- css template  -->
+ <link rel="stylesheet" type="text/css" href="css/style.css"> 
+ <link rel="stylesheet" type="text/css" href="css/style_clim.css"> 
+
+<script>
+
+	$(document).ready(function(){
+		$("button").button();
+		$("#back").click(function(){
+			window.location = 'navigationmenu_clim.html';
+		});
+		
+		//prendo i valori dall'url
+		var mandata=GetURLParameter('MandataTemperature');
+		var ritorno=GetURLParameter('RitornoTemperature');
+		var mandata_value = "--";
+		var ritorno_value = "--";
+
+		var query_m = instant_query_ver + mandata;
+		var query_r =instant_query_ver + ritorno;
+		console.log(query_m);
+		
+		//devo fare due richieste ajax per sapere i valori
+		execute_instant_query(query_m, $("#mand_value"));
+		execute_instant_query(query_r, $("#rit_value"));
+		
+		//interval ogni 10 min richiedo il dato
+		
+		setInterval(function(){
+			query_m = query+mandata;
+			query_r = query+ritorno;
+			execute_instant_query(query_m, $("#mand_value"));
+			execute_instant_query(query_r, $("#rit_value"));
+			}, 10000)
+		
+	});
+</script>
+
+
+<title>Applus Energie</title>
+
+</head>
+<body>
+
+	<div class="application"> 
+	
+	<div class="intestazione">
+	<button id="back"> Back </button>
+		
+		<h1 class="title"> Central cooling system </h1>
+	</div>
+	
+	<div class="fillparent">
+
+<div class="cont_img">
+	<img id="image" src="img/CentraleFrigoriferaVerres.jpg" /> 
+
+	
+	<div class="punctual-value" id="mandata_cf"> <span id="mand_value">-- </span> <span>°C</span> </div>
+	<div class="punctual-value" id="ritorno_cf"> <span id="rit_value">-- </span> <span>°C</span> </div>
+</div>
+	</div>
+	
+
+	
+	<div class="nota">
+	NB: The plan is educational and not intended for other uses.
+	</div>
+	
+	
+	</div>
+	
+	
+
+</body>
+
+
+<!-- script jquery -->
+
+<script type="text/javascript" src="js/jquery-ui-1.10.2.custom.min.js"></script>
+
+<!--  script angular js-->
+<script type="text/javascript" src="js/angular.min.js"></script>
+
+<!-- date js -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+</html>

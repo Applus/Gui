@@ -1,0 +1,79 @@
+<!-- libreria per rating con le stelline -->
+<script type="text/javascript" src="lib/jquery.raty.min.js"></script>
+<script type="text/javascript">
+
+var name;
+var place;
+var localurl;
+	$(document).ready(function() {
+		place = GetURLParameter('place', sessionStorage.getItem('url'));
+		name = GetURLParameter('name', sessionStorage.getItem('url')).toUpperCase();
+		if(place=="mirafiori"){
+			
+			localurl=confort_mir;
+		}
+		else{
+			
+			localurl=confort_ver;
+		}
+		
+		
+		//rating management
+		
+		//devo prendere lo score attuale e il numero di voti dalle api rest
+		var result;
+		var count;
+		
+		updateRating();
+		
+		
+		setInterval(function(){updateRating()},40000);
+		
+		
+	});
+	
+	function updateRating(){
+		name=name.toUpperCase();
+		console.log(name);
+		$.ajax({
+			url:localurl+'STARS_'+name,
+			dataType: 'jsonp'
+		}).done(function(data){
+		
+			var count = data.count;
+			var result = data.result;
+			
+			$('#rating').raty({ 
+				score: result,
+				size: 24,
+				starHalf : 'star-half-big.png',
+				starOff  : 'star-off-big.png',
+				starOn   : 'star-on-big.png',
+				click : function(score, evt){
+					var voto= {"value": score};
+					console.log('hai votato '+ score);	
+					console.log(localurl);
+					send(name,"STARS",voto,localurl);
+					updateRating();
+				}
+			});
+			$("#count").empty().append(count);
+		}).fail(function(){
+			console.log('error rating');	
+		});
+	}
+
+</script>
+<div class="youropinion">
+
+	<div class="sottotitolo">Are you comfortable in this room?</div>
+	
+	<!-- div che contiente le stelline -->
+		<div class="rating-container">
+			<div id="rating"></div>
+			<div> Total votes : <span id="count"></span> </div>
+			<div> NB: the average refers to last hour votes</div>
+		</div>
+		<!-- <a href="m.votazioni.html" data-role="button">Analitic Climatic Experience</a> -->
+
+</div>

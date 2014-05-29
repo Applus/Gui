@@ -1,0 +1,605 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1.0, maximum-scale=1.0, user-scalable=no""> 
+
+<title>Applus Energie Mobile</title>
+<link rel="stylesheet" href="css/custom-theme.css" />
+<!--  jquery and jquerymobile -->
+<link rel="stylesheet" href="css/jquery.mobile.structure-1.3.0.min.css" /> 
+<script src="js/jquery-1.9.1.min.js"></script> 
+<script src="js/jquery.mobile-1.3.0.min.js"></script> 
+
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="css/style.css" >
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="css/style_clim.css">		
+
+<!-- general js -->
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/new_general.js"></script>
+
+<!-- moment -->
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/it.js"></script>
+
+<!-- just gauge -->
+<script src="js/raphael.2.1.0.min.js"></script>
+<script src="js/justgage.1.0.1.min.js"></script>
+
+<!-- gauge.js -->
+<script type="text/javascript" src="js/gauge.min.js"></script>
+
+<!-- angular js -->
+<script src="js/angular.min.js"></script>
+
+<!-- swipe panel -->
+<script>
+
+$( document ).on( "pageinit", "#default", function() {
+	$("#verres_b").on('click', function(e){
+		e.preventDefault();
+		sessionStorage.setItem('url', '?&name=Building%20Total&totalpower=ELE_SER_TR1_PTOT&totalenergy=ELE_SER_TR1_E&power=&energy=&place=verres');	
+		query_dwh = verres_query_dwh;
+		query_db = verres_query_db;
+		$.mobile.changePage('m.choose.html', {transition: "slide"});
+	});
+	
+	$("#mirafiori_b").on('click', function(e){
+		e.preventDefault();
+		sessionStorage.setItem('url', '?&name=Study Hall&totalpower=MIR_ELE_STU_P&totalenergy=MIR_ELE_STU_P&power=MIR_ELE_STU_MT1_LUCE1_P|MIR_ELE_STU_MT1_LUCE2_P|MIR_ELE_STU_MT1_BANCO1_P|MIR_ELE_STU_MT2_BANCO2_P|MIR_ELE_STU_MT2_BANCO3_P|MIR_ELE_STU_MT2_MON_P&energy=MIR_ELE_STU_MT1_LUCE1_P|MIR_ELE_STU_MT1_LUCE2_P|MIR_ELE_STU_MT1_BANCO1_P|MIR_ELE_STU_MT2_BANCO2_P|MIR_ELE_STU_MT2_BANCO3_P|MIR_ELE_STU_MT2_MON_P&place=mirafiori');
+		query_dwh = mirafiori_query_dwh;
+		query_db = mirafiori_query_db;
+		$.mobile.changePage('m.choose.html', {transition: "slide"});
+	});
+});
+
+</script>
+</head>
+<body>
+
+	<!--  menÃ¹ principale con i 3 bottoni della scelta del luogo di visualizzazione-->
+	<div id="default" data-role="page" data-theme="a">
+		<div data-role="header">
+			<p align="center">Monitored Buildings</p>
+		</div>
+		<div data-role="content">
+		<ul data-role="listview" data-inset="true">
+			<li id="verres_b"><a data-theme="a">Verrès</a> </li>
+			<li id="mirafiori_b"><a data-theme="a">Torino - Mirafiori Study Hall</a></li>
+		</ul>
+		</div>
+	</div>
+	
+	<div id="warning-message">
+		This site is visible in landscape mode, please rotate your mobile.
+	</div>
+
+<!-- angular js -->
+<script src="js/angular.min.js"></script>
+<!-- highcharts -->
+<script src="js/highcharts.js"></script>
+<!-- highstock -->
+<script src="js/highstock.js"></script>
+<!-- highchart more -->
+<script src="js/highcharts-more.js"></script>
+
+<!-- tema grafici -->
+<script src="js/charts.theme.js"></script>
+
+
+<!-- script pagina choose (tra consumo energetico e climatico)-->
+<script>
+$ ( document ).on("pageinit","#choose", function(){
+	console.log("pageinit choose");
+	var place = GetURLParameter('place', sessionStorage.getItem('url'));
+	if(place=="verres"){
+		query_dwh = verres_query_dwh;
+		$("#intestazione").text('Verrès');
+		$("#elettrico").on("click", function(e){
+			e.preventDefault();
+			$.mobile.changePage('m.mainpageVerres.html', {transition: "slide"});
+		});
+		$("#climatico").on("click", function(e){
+			e.preventDefault();
+			$.mobile.changePage('m.mainpageVerres_clim.html', {transition: "slide"});
+		});
+	}
+	
+	else if(place=="mirafiori"){
+		query_dwh = mirafiori_query_dwh;
+		$("#intestazione").text('Mirafiori');
+		$("#elettrico").on("click", function(e){
+			e.preventDefault();
+			$.mobile.changePage('m.mainpageMirafiori.html', {transition: "slide"});
+		});
+		$("#climatico").on("click", function(e){
+			e.preventDefault();
+			$.mobile.changePage('m.mainpageMirafiori_clim.html', {transition: "slide"});
+		});
+	}
+	
+});
+</script>
+
+<!-- script verres! -->
+<script>
+
+$( document ).on( "pageinit", "#verres", function() {
+	query_dwh = verres_query_dwh;
+	//setto url di default -> posso pensare di avere dei parametri separati 
+	sessionStorage.setItem('url','?&name=Building%20Total&totalpower=ELE_SER_TR1_PTOT&totalenergy=ELE_SER_TR1_E&power=&energy=&place=verres');
+	
+	//aggiorno il titolo
+	var titolo = GetURLParameter('name',sessionStorage.getItem('url'));
+	
+	titolo = decodeURIComponent(titolo);
+	
+	if(titolo == "Unita di trattamento aria"){
+		titolo = "Unità di trattamento aria";
+	}
+	$("#position").append(titolo);
+	
+	$("#menu_graph_container").load('m.staticgraphs.html', function(){
+		$(this).trigger('create');
+	});
+	
+	$( "#navigation-panel-verres" ).on( "panelopen", function( event, ui ) {
+		//aggiungo l'handler del click solo agli li che sono nell'albero di navigazione
+		$("li[class^='livello']>a").on('tap', function(e){
+			
+			e.preventDefault();
+			
+			var url = sessionStorage.setItem('url', $(this).attr('url'));
+			
+			//aggiorno il titolo
+			var titolo = GetURLParameter('name',sessionStorage.getItem('url'));
+			titolo = decodeURIComponent(titolo);
+			if(titolo == "Unita di trattamento aria"){
+				titolo = "Unità di trattamento aria";
+			}
+			$("#position").empty().append(titolo);
+			
+			//ricarico la home page con i bottoni di scelta
+			$("#menu_graph_container").load('m.staticgraphs.html', function(){
+				$(this).trigger('create');
+			});
+			//rimetto attivo il primo bottone del menu nel footer
+			$("#staticgraphs").addClass('ui-btn-active');
+			$("#interactivegraphs").removeClass('ui-btn-active');
+			$("#eco_consiglio").removeClass('ui-btn-active');
+			$("#navigation-panel-verres" ).panel( "close" );
+			
+		});
+    	
+    } );
+	
+    
+	$( "#navigation-panel-verres" ).on( "panelclose", function( event, ui ) {
+    	
+    	$("li[class^='livello']>a").off('tap');
+    	
+    } );
+    
+
+	$("#staticgraphs").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.staticgraphs.html', function(){
+			$(this).trigger('create');
+		});
+			
+	});
+		
+	$("#interactivegraphs").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.interactivegraphs.html', function(){
+			$(this).trigger('create');
+		});
+			
+	});
+	
+	$("#eco_consiglio").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.ecoConsigli.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	
+	$("#verres").on('pageshow', function(){
+			$('#navigation-panel-verres').load('m.sidenavigationpanel.html', function(){
+				$(this).trigger('create');
+			});
+	});
+
+});
+
+</script>
+
+
+<!-- script verres clima -->
+<script>
+
+$( document ).on( "pageinit", "#verres_clim", function() {
+	console.log("pageinit verresclim");
+	
+	//setto url di default -> posso pensare di avere dei parametri separati 
+	sessionStorage.setItem('url','?&name=Lecture Room F1&Temperature=120_T01_TVAL&RelativeHumidity=120_T01_UVAL&CO2=120_T01_CVAL&Valvola=120_REG_VLV_CLD&place=verres');
+	
+	$("#position").append(GetURLParameter('name',sessionStorage.getItem('url')));
+	
+	
+	
+	$( "#navigation-panel-verres-clim" ).on( "panelopen", function( event, ui ) {
+		//aggiungo l'handler del click solo agli li che sono nell'albero di navigazione
+		$("li[class^='livello']>a").on('tap', function(e){
+			
+			e.preventDefault();
+			
+			var url = sessionStorage.setItem('url', $(this).attr('url'));
+			
+			//aggiorno il titolo
+			var titolo = GetURLParameter('name',sessionStorage.getItem('url'));
+			titolo = decodeURIComponent(titolo);
+			$("#position").empty().append(titolo);
+			//svuoto il contenitore del grafico
+			$("#graph_container_clim").empty();
+			//chiudo il pannello
+			$("#navigation-panel-verres-clim" ).panel( "close" );
+		});
+    	
+    } );
+	
+    
+	$( "#navigation-panel-verres-clim" ).on( "panelclose", function( event, ui ) {
+    	
+    	$("li[class^='livello']>a").off('tap');
+    	
+    } );
+    
+	//gestione bottoni clima
+	$("#clim_istantaneo").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.graficoclimaistantaneo.html', function(){
+			$(this).trigger('create');
+		});
+		
+	});
+
+	$("#clim_oggi").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.graficoclimaoggi.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	
+	$("#your_opinion").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.youropinion.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	
+	
+	$("#verres_clim").on('pageshow', function(){
+		
+		sessionStorage.setItem('place', 'verres');
+			
+			$('#navigation-panel-verres-clim').load('m.sidenavigationpanel_clim.html', function(){
+			
+				$(this).trigger('create');
+			});
+	});
+	
+
+});
+
+$( document ).on( "pageinit", "#votazioni_pag", function() {
+
+	var name = GetURLParameter('name', sessionStorage.getItem('url'));
+	console.log("NOME"+name);
+	$( ".sottotitolo" ).append(name);
+	
+
+	var opts = {
+			lines : 200, // The number of lines to draw
+			angle : 0.02, // The length of each line
+			lineWidth : 0.30, // The line thickness
+			pointer : {
+				length : 0.69, // The radius of the inner circle
+				strokeWidth : 0.053, // The rotation offset
+				color : '#000000' // Fill color
+			},
+			limitMax : 'true', // If true, the pointer will not go past the end of the gauge
+			strokeColor : '#E0E0E0', // to see which ones work best for you
+			generateGradient : true,
+			percentColors : [ [ 0.0, "#42EAFF" ],[ 0.50, "#FFFF00" ], [ 1.0, "#FF0000" ] ]
+		};
+
+	var opts_nd = {
+			lines : 200, // The number of lines to draw
+			angle : 0.02, // The length of each line
+			lineWidth : 0.30, // The line thickness
+			pointer : {
+				length : 0.69, // The radius of the inner circle
+				strokeWidth : 0.053, // The rotation offset
+				color : '#000000' // Fill color
+			},
+			limitMax : 'true', // If true, the pointer will not go past the end of the gauge
+			strokeColor : '#E0E0E0', // to see which ones work best for you
+			generateGradient : true,
+			percentColors : [ [ 0.0, "#FF6F00" ],[ 0.50, "#C4FF00" ], [ 1.0, "#42FFF7" ] ]
+		};
+					
+	var opts_rd = {
+			lines : 1000, // The number of lines to draw
+			angle : 0.02, // The length of each line
+			lineWidth : 0.30, // The line thickness
+			pointer : {
+				length : 0.69, // The radius of the inner circle
+				strokeWidth : 0.053, // The rotation offset
+				color : '#000000' // Fill color
+			},
+			limitMax : 'true', // If true, the pointer will not go past the end of the gauge
+			strokeColor : '#E0E0E0', // to see which ones work best for you
+			generateGradient : true,
+			percentColors : [ [ 0.0, "#974E0A" ],[ 0.50, "#A6FF61" ], [ 1.0, "#61FFF8" ] ]
+		};
+
+	var target_temp = document.getElementById('temp'); // your canvas element
+	var gauge_temp = new Gauge(target_temp).setOptions(opts); // create gauge!
+	gauge_temp.minValue = -3;
+	gauge_temp.maxValue = 3; // set max gauge value
+	gauge_temp.animationSpeed = 32; // set animation speed (32 is default value)
+
+	var target_hum = document.getElementById('hum'); // your canvas element
+	var gauge_hum = new Gauge(target_hum).setOptions(opts_nd); // create gauge!
+	gauge_hum.minValue = -3;
+	gauge_hum.maxValue = 3; // set max gauge value
+	gauge_hum.animationSpeed = 32; // set animation speed (32 is default value)
+	var target_air = document.getElementById('air'); // your canvas element
+	var gauge_air = new Gauge(target_air).setOptions(opts_rd); // create gauge!
+	gauge_air.minValue = -3;
+	gauge_air.maxValue = 3; // set max gauge value
+	gauge_air.animationSpeed = 32; // set animation speed (32 is default value)
+			
+	console.log("Prima delle richieste ajax");
+	var up_name = name.toUpperCase();
+	console.log(up_name);
+			
+	//richiesta ajax per le etichette
+	var tot_t = new Array(), tot_h = new Array(), tot_a = new Array();
+			
+	tot_t = get_etichette(up_name, "TEMP");
+	tot_h = get_etichette(up_name, "HUM");
+	tot_a = get_etichette(up_name, "AIR");
+				
+	//setta il valore dei gauge
+	do_gauge(up_name, "TEMP", opts, gauge_temp);
+	setInterval(function() {do_gauge(up_name, "TEMP", opts, gauge_temp);}, 50000);
+	do_gauge(up_name, "HUM", opts_nd, gauge_hum);
+	setInterval(function() {do_gauge(up_name, "HUM", opts_nd, gauge_hum);}, 50000);
+	do_gauge(up_name, "AIR", opts_rd, gauge_air);
+	setInterval(function() {do_gauge(up_name, "AIR", opts_rd, gauge_air);}, 50000);
+				
+});
+
+	$("#vote").on("click", function(e) {
+		e.preventDefault();
+		$.mobile.changePage('m.slider.html', {
+			transition : "slide"
+		});
+		sessionStorage.setItem('place', 'verres');
+	});
+
+	$("#navigation-panel-verres-clim").on(
+			"panelopen",
+			function(event, ui) {
+				//aggiungo l'handler del click solo agli li che sono nell'albero di navigazione
+				$("li[class^='livello']>a").on(
+						'tap',
+						function(e) {
+						
+							e.preventDefault();
+							
+							var url = sessionStorage.setItem('url', $(this)
+									.attr('url'));
+
+							//aggiorno il titolo
+							var titolo = GetURLParameter('name', sessionStorage
+									.getItem('url'));
+							titolo = decodeURIComponent(titolo);
+							$("#position").empty().append(titolo);
+							//svuoto il contenitore del grafico
+							$("#graph_container_clim").empty();
+							//chiudo il pannello
+							$("#navigation-panel-verres-clim").panel("close");
+						});
+
+			});
+
+	$("#navigation-panel-verres-clim").on("panelclose", function(event, ui) {
+
+		$("li[class^='livello']>a").off('tap');
+
+	});
+</script>
+
+<!-- script mirafiori -->
+<script>
+$( document ).on( "pageinit", "#mirafiori", function() {
+	// store some data
+	$("#mirafiori").on('pageshow', function(){
+		
+		sessionStorage.setItem('place', 'mirafiori');
+		//setto url di default -> posso pensare di avere dei parametri separati 
+		sessionStorage.setItem('url','?&name=Study Hall&totalpower=MIR_ELE_STU_P&totalenergy=MIR_ELE_STU_P&power=MIR_ELE_STU_MT1_LUCE1_P|MIR_ELE_STU_MT1_LUCE2_P|MIR_ELE_STU_MT1_BANCO1_P|MIR_ELE_STU_MT2_BANCO2_P|MIR_ELE_STU_MT2_BANCO3_P|MIR_ELE_STU_MT2_MON_P&energy=MIR_ELE_STU_MT1_LUCE1_P|MIR_ELE_STU_MT1_LUCE2_P|MIR_ELE_STU_MT1_BANCO1_P|MIR_ELE_STU_MT2_BANCO2_P|MIR_ELE_STU_MT2_BANCO3_P|MIR_ELE_STU_MT2_MON_P&place=mirafiori');
+		
+		var titolo =GetURLParameter('name',sessionStorage.getItem('url'))
+		titolo = decodeURIComponent(titolo);
+		$("#position").empty().append(titolo);
+		
+	$('#navigation-panel-mirafiori').load('m.sidenavigationpanel.html', function(){
+		$(this).trigger('create');
+	});
+
+	});
+    
+	
+	$("#menu_graph_container").load('m.staticgraphs.html', function(){
+		$(this).trigger('create');
+	});
+	
+    
+$( "#navigation-panel-mirafiori" ).on( "panelopen", function( event, ui ) {
+	 //aggiungo l'handler del click solo agli li che sono nell'albero di navigazione
+	$("li[class^='livello']>a").on('tap', function(e){
+		
+		e.preventDefault();
+		
+		sessionStorage.setItem('url', $(this).attr('url'));
+		
+		//aggiorno il titolo
+		var titolo =GetURLParameter('name',sessionStorage.getItem('url'))
+		titolo = decodeURIComponent(titolo);
+		$("#position").empty().append(titolo);
+		
+		//ricarico la home page con i bottoni di scelta
+		$("#menu_graph_container").load('m.staticgraphs.html', function(){
+			$(this).trigger('create');
+		});
+		//rimetto attivo il primo bottone del menu nel footer
+		$("#staticgraphs").addClass('ui-btn-active');
+		$("#interactivegraphs").removeClass('ui-btn-active');
+		$("#eco_consiglio").removeClass('ui-btn-active');
+		$( "#navigation-panel-mirafiori" ).panel( "close" );
+		
+	});   	
+    	
+    } );
+    
+$( "#navigation-panel-mirafiori" ).on( "panelclose", function( event, ui ) {
+    	
+    	$("li[class^='livello']>a").off('tap');
+    	
+    } );
+
+	$("#staticgraphs").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.staticgraphs.html', function(){
+			$(this).trigger('create');
+		});
+			
+	});
+		
+	$("#interactivegraphs").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.interactivegraphs.html', function(){
+				$(this).trigger('create');
+		});
+			
+	});
+	
+	$("#eco_consiglio").on('click', function(e){
+		e.preventDefault();
+		$("#menu_graph_container").load('m.ecoConsigli.html', function(){
+			$(this).trigger('create');
+		});
+	});
+
+});
+
+</script>
+
+<!-- script mirafiori clima -->
+<script>
+var timer_ill;
+var timer_tu;
+$( document ).on( "pageinit", "#mirafiori_clim", function() {
+	console.log("pageinit mirafioriclim");
+	
+	//setto url di default -> posso pensare di avere dei parametri separati 
+	sessionStorage.setItem('url','?&name=Study Hall&Temperature=MIR_HVAC_STU_GEN_T&RelativeHumidity=MIR_HVAC_STU_GEN_UR&Illuminance=MIR_HVAC_STU_GEN_LUM&place=mirafiori');
+	
+	var titolo =GetURLParameter('name',sessionStorage.getItem('url'))
+	titolo = decodeURIComponent(titolo);
+	$("#position").empty().append(titolo);
+
+	//gestione bottoni clima
+	$("#clim_istantaneo").on('click', function(e){
+		e.preventDefault();
+		//cancello i timer se esistono
+	
+		if(!typeof timer_ill!=='undefined'){
+			console.log('cancello il timer');
+			clearInterval(timer_ill);
+		}
+		if(!typeof timer_tu!=='undefined'){
+			console.log('cancello il timer');
+			clearInterval(timer_tu);
+		}
+		$('#graph_container_clim').load('m.graficoclimaistantaneo_tu.html', function(){
+			$(this).trigger('create');
+		});
+		
+	});
+	$("#clim_istantaneo_ill").on('click', function(e){
+		e.preventDefault();
+		//cancello i timer se esistono
+		if(typeof timer_ill!=='undefined'){
+			
+			clearInterval(timer_ill);
+		}
+		if(typeof timer_tu!=='undefined'){
+		
+			clearInterval(timer_tu);
+		}
+		
+		$('#graph_container_clim').load('m.graficoclimaistantaneo_ill.html', function(){
+			$(this).trigger('create');
+		});
+		
+	});
+
+	$("#clim_oggi").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.graficoclimaoggi_tu.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	$("#clim_oggi_ill").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.graficoclimaoggi_ill.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	
+	$("#your_opinion").on('click', function(e){
+		e.preventDefault();
+		$('#graph_container_clim').load('m.youropinion.html', function(){
+			$(this).trigger('create');
+		});
+	});
+	
+
+	$("#mirafiori_clim").on('pageshow', function(){
+		
+		sessionStorage.setItem('place', 'mirafiori');
+	});
+
+});
+
+</script>
+</body>
+</html>

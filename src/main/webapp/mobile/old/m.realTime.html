@@ -1,0 +1,216 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Real Time</title>
+
+<!--  jquery and jquerymobile -->
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
+<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+<!-- script highcharts -->
+<script type="text/javascript" src="js/highcharts.js"></script>
+<!-- script highstock -->
+<script type="text/javascript" src="js/highstock.js"></script>
+<!-- script highcharts more -->
+<script type="text/javascript" src="js/highcharts-more.js"></script>
+
+
+<style type="text/css">
+
+	#form{
+		color:white;
+		width:25%;
+		float:left;
+		height: 300px;
+	}
+	#realtime_chart{
+		width:70%;
+		float:right;
+		height: 300px;
+		border-radius: 15px;
+		background-color: #2D2D2D;
+	}
+	
+</style>
+
+
+<script type="text/javascript">
+
+var query = "http://10.10.10.198:8087/JeerpDa/viewer/measure/";
+//variabili per il grafico
+var name;
+var unit;
+var time = [];
+var value = [];
+var count;
+//grafico vero e proprio
+var realtime_chart;
+
+//timer
+var timer;
+
+//categories del grafico
+var categories = [];
+
+
+	$().ready(function(){
+		console.log("ready");
+		$('input[type="button"][name="doGraph"]').click(function(){
+			//devo resettare i timer
+			clearInterval(timer);
+			var meter = $('input[name="meter"]:checked').val();
+			//alert(meter);
+			//devo costruire l'url
+			var new_query = query+meter+"?limit=10&reversed=true";
+			console.log(new_query);
+			//faccio la chiamata ajax
+			$.ajax({
+				url: new_query,
+				dataType: "jsonp",
+				error: function(x, t, r){
+					/* console.log(x.response.message); */
+				},
+				success: function(data){
+					//prendo i dati
+					name = data.name;
+					unit = data.unit;
+					count = data.count;
+					for(var i=0; i<count; i++){
+						var time_unix = data.measures[i].time;
+						//devo convertirlo da unix timestamp in date
+						var date = new Date(time_unix);
+						//devo formattare bene minuti e secondi (le ore le lascio così?)
+						var hours = date.getHours();
+						if(hours<10){
+							hours = "0"+hours;
+						}
+						var minutes = date.getMinutes();
+						if(minutes<10){
+							minutes = "0"+minutes;
+						}
+						var seconds = date.getSeconds();
+						if(seconds<10){
+							seconds = "0"+seconds;
+						}
+						time[i] = hours+":"+minutes+":"+seconds;
+						value[i] = data.measures[i].value;
+					}
+					
+				},
+				complete: function(){
+					//costruisco il grafico
+					//vorrei far vedere solo una porzione sullo schermo e poi fare drag per andar eindietro
+					//devo aggiungere ogni 5 secondi l'ultimo dato
+					//con addPoint e non update
+					realtime_chart = new Highcharts.Chart({
+						chart: {
+								renderTo: 'realtime_chart',
+		                		type: 'spline',
+		               			marginRight: 10,
+		               			backgroundColor:'#2D2D2D'
+		            	},
+		            	title: {
+		                		text: 'Consumi in tempo reale del meter '+name,
+		                		style: {
+		    		                color: '#FFFFFF',
+		    		                fontWeight: 'bold'
+		    		            }
+		          		},
+		          		xAxis: {
+		          			 categories: time 
+		                },
+		                yAxis: {
+		                    title: {
+		                        text: unit
+		                    },
+		                    plotLines: [{
+		                        value: 0,
+		                        width: 1,
+		                        color: '#808080'
+		                    }]
+		                },
+		          		series: [{
+		                    name: 'Consumo istantaneo',
+		                    data: value
+		                }]
+					},
+					function(realtime_chart){
+						var series = realtime_chart.series[0];
+						categories = realtime_chart.xAxis[0].categories;
+						timer = setInterval(function(){
+							 $.ajax({
+								 url: query+meter+"?limit=1&reversed=true",
+									dataType: "jsonp",
+									error: function(x, t, r){
+										/* console.log(x.response.message); */
+									},
+									success: function(data){
+										var newtime_unix = data.measures[0].time;
+										var newdate = new Date(newtime_unix);
+										var newtime = newdate.getHours()+":"+newdate.getMinutes()+":"+newdate.getSeconds();
+										//alert(newtime);
+										categories.push(newtime);
+										realtime_chart.xAxis[0].setCategories(categories);
+										
+										var newval = data.measures[0].value;
+										series.addPoint(newval, true, true);
+										
+									}
+							 });
+							 
+						}, 10000);
+					
+					//fine highcharts
+					});
+				}
+				
+			//fine ajax
+			});
+		//fine click	
+		});
+	//fine ready
+	});
+</script>
+</head>
+
+<body data-theme="a">
+	<form id="form">
+        <fieldset data-role="controlgroup">
+        <input type="radio" data-theme="a" name="meter" id="m1-p1" value="m1-p1" checked="checked">
+        <label for="m1-p1">m1-p1</label>
+        <input type="radio" data-theme="a" name="meter" id="m1-p2" value="m1-p2">
+        <label for="m1-p2">m1-p2</label>
+        <input type="radio" data-theme="a" name="meter" id="m1-p3" value="m1-p3">
+        <label for="m1-p3">m1-p3</label>
+        <input type="radio" data-theme="a" name="meter" id="m2-p1" value="m2-p1">
+        <label for="m2-p1">m2-p1</label>
+        <input type="radio" data-theme="a" name="meter" id="m2-p2" value="m2-p2">
+        <label for="m2-p2">m2-p2</label>
+        <input type="radio" data-theme="a" name="meter" id="m2-p3" value="m2-p3">
+        <label for="m2-p3">m2-p3</label>
+    </fieldset>
+     <input type="button" data-theme="a" name="doGraph" value="Grafico"></p>
+	</form>
+	
+	<div id="realtime_chart"> </div>
+</div>
+</body>
+
+
+
+
+
+
+</html>

@@ -1,0 +1,138 @@
+<!-- ***************************************************************************
+*Copyright (c) 2014 Proxima Centauri srl <info@proxima-centauri.it>.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the GNU Public License v3.0
+* which accompanies this distribution, and is available at
+* http://www.gnu.org/licenses/gpl.html
+*  
+* Contributors:
+*     Proxima Centauri srl <info@proxima-centauri.it> - initial API and implementation
+**************************************************************************** -->
+
+<script type="text/javascript">
+	//uso lo script per allineare bene gli elementi
+	var container_h;
+	var sotto_h;
+	var img_h;
+	var value_tot;
+	var value_stanza;
+	var perc;
+	$().ready(function(){
+
+		$("#simbolo").load(function() {
+			console.log("loaded image");
+	       	img_h = $(this).height();
+	       	console.log(img_h);
+	      //prendo dimensione div per_consumo
+			console.log("perc consumo");
+			
+			container_h = $(".perc_consumo").height();
+			sotto_h = $("#sotto").height();
+			//allinea al centro lo span della percentalue
+			var span_h = $("#percentuale").height();
+			var padding_top_span = (container_h/2)- span_h;
+			$("#percentuale").css("padding-top", padding_top_span);
+			//allineo al centro il simbolo
+			var padding_top_simbolo = (container_h/2)- img_h;
+			$("#simbolo").css("padding-top", padding_top_simbolo);
+			
+			//allineao in basso la scritta nel div sotto
+			var padding_top = (container_h - (container_h - padding_top_simbolo - img_h)- sotto_h*2 - 15);
+			console.log(padding_top);
+			$("#sotto").css("padding-top", padding_top);
+		});
+			//faccio chiamata ajax per avere tot
+			$.ajax({
+				url: query_db+"drain-tpe?limit=1&reversed=true",
+				dataType : "jsonp",
+				success:function(data){
+					value_tot = data.measures[0].value;
+					console.log(value_tot);
+					
+				},
+				error:function(x, t, r){
+					console.log(x.response.message);
+				},
+				complete:function(qXHR, textStatus){
+					$.ajax({
+						url: query_db+"drain-tpe?limit=1&reversed=true",
+						dataType : "jsonp",
+						success:function(data){
+							value_stanza = data.measures[0].value;
+							console.log(value_stanza);
+							
+						},
+						error:function(x, t, r){
+							console.log(x.response.message);
+						},
+						complete:function(qXHR, textStatus){
+							//calcolo percentuale
+							/* perc = (value_stanza*100)/value_tot;
+							perc = Math.round(perc); */
+							// sovrascivo con un numero random per la demo
+						    perc = (value_stanza*100)/6000;
+						    perc = Math.round(perc); 
+							console.log(perc+"%");
+							$("#percentuale").text(perc+"%");
+							
+							//devo mettere timer per avere la perc ogni 10 sec aggiornata
+							setInterval(function(){
+								//faccio chiamata ajax per avere tot
+								$.ajax({
+									url: query_db+"drain-tpe?limit=1&reversed=true",
+									dataType : "jsonp",
+									success:function(data){
+										value_tot = data.measures[0].value;
+										console.log(value_tot);
+										
+									},
+									error:function(x, t, r){
+										console.log(x.response.message);
+									},
+									complete:function(qXHR, textStatus){
+										$.ajax({
+											url: query_db+"drain-tpe?limit=1&reversed=true",
+											dataType : "jsonp",
+											success:function(data){
+												value_stanza = data.measures[0].value;
+												console.log(value_stanza);
+												
+											},
+											error:function(x, t, r){
+												console.log(x.response.message);
+											},
+											complete:function(qXHR, textStatus){
+												//calcolo percentuale
+												/* perc = (value_stanza*100)/value_tot;
+												perc = Math.round(perc); */
+												// sovrascivo con un numero random per la demo
+											    perc = (value_stanza*100)/6000;
+											    perc = Math.round(perc); 
+												console.log(perc+"%");
+												$("#percentuale").text(perc+"%");
+												
+												
+											}
+											
+										});
+										
+									}
+									
+								});
+							}, 10000);
+						}
+						
+					});
+					
+				}
+				
+			});
+	});
+</script>
+
+<div class="perc_consumo">
+	<div id="sopra"> Il consumo attuale &egrave; il: </div> 
+	<img id="simbolo" alt="simbolo" src="img/fulmine_energia.png" /> 
+	<span id="percentuale"> N/D %</span> </br>
+	<div id="sotto"> del  totale dell'edificio</div>
+</div>

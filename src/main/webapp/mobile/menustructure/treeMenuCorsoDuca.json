@@ -1,0 +1,6 @@
+{ 
+  "children" : [],
+  "locationDB" : "[prova]",
+  "name" : "Aula 1",
+   "sensors": [{ "name" : "sensore1" }, { "name" : "sensore2" }]
+}
