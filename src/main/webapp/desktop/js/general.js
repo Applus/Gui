@@ -55,20 +55,20 @@ function convertFromStringToUTCDate (dateString){
 	//console.log(date_array);
 
 	var day=date_array[2];
-	//day = day.split('T');
+	day = day.split('T');
 	var hour = day[1].split('+');
-	//console.log(day);
+	console.log(day);
 	
-	//if(date_array.length==3){
-		//date_utc =Date.UTC(date_array[0],date_array[1] - 1,day[0]);
-	//}
-	//else if(date_array.length==4){		
+	if(date_array.length==3){
+		date_utc =Date.UTC(date_array[0],date_array[1] - 1,day[0]);
+	}
+	else if(date_array.length==4){		
 		date_utc =Date.UTC(date_array[0],date_array[1] - 1,day[0],hour[0], 0);
-	//}
-	//else if (date_array.length==5){
-		//date_utc =Date.UTC(date_array[0],date_array[1] - 1,day[0],hour[0],date_array[4]);
-	//}
-	//console.log(date_utc);
+	}
+	else if (date_array.length==5){
+		date_utc =Date.UTC(date_array[0],date_array[1] - 1,day[0],hour[0],date_array[4]);
+	}
+	console.log(date_utc);
 	return date_utc; 
 }
 

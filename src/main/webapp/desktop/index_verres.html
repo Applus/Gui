@@ -57,7 +57,8 @@ var logged=false;
 		
 		
 		$("#verres").click(function(){
-			
+			$("#data_analysis_verres").removeClass('focused');
+			$("#verres").addClass('focused');
 			//hide visible dov
 			$("#dataanalysis_children").removeClass('showing-div').addClass('hidden-div');
 			//show hidden-div
@@ -68,6 +69,9 @@ var logged=false;
 		});
 		
 		$("#verres_electric").click(function(){
+			$("#verres").removeClass('focused');
+			$("#data_analysis_verres").removeClass('focused');
+			
 			if(logged=='false'||logged==false || logged=='undefined' || logged==null){
 				location.href = "dashboard.html?name=Building%20Total&totalpower=ELE_SER_TR1_PTOT&totalenergy=ELE_SER_TR1_E&power=&energy=&place=verres";
 			}
@@ -77,16 +81,24 @@ var logged=false;
 		});
 		
 		$("#verres_economic").click(function(){
+			$("#verres").removeClass('focused');
+			$("#data_analysis_verres").removeClass('focused');
+			
 			location.href = "";
 		});
 		
 		
 		$("#clim_verres").click(function(){
+			$("#verres").removeClass('focused');
+			$("#data_analysis_verres").removeClass('focused');
+			
 			location.href = "navigationmenu_clim.html?place=verres";
 		});
 		
 		
 		$("#data_analysis_verres").click(function(){
+			$("#verres").removeClass('focused');
+			$("#data_analysis_verres").addClass('focused');
 			//hide visible div
 			$("#dataanalysis_children").removeClass('hidden-div').addClass('showing-div');
 			//show hidden-div
@@ -94,6 +106,9 @@ var logged=false;
 		});
 		
 		$("#index-gui").click(function(){
+			$("#verres").removeClass('focused');
+			$("#data_analysis_verres").removeClass('focused');
+			
 			window.open("https://verres.applus.polito.it/IndexGui");
 		});
 		

@@ -106,7 +106,7 @@
 					},
 					complete : function(qXHR, textStatus) {
 						
-						if(yesterday_values.length>0){
+					//	if(yesterday_values.length>0){
 							chart1 = new Highcharts.Chart({
 								chart : {
 									renderTo : 'chart',
@@ -226,11 +226,11 @@
 								}, 10 * 60 * 1000);
 
 							});
-						}
-						else {
-							var scritta = $("<p class='errorMessage'>").text("Data are temporarily not availabe. Try to refresh the page.");
-							$(".grafico_centrale").append(scritta);
-						}
+					//	}
+					//	else {
+					//		var scritta = $("<p class='errorMessage'>").text("Data are temporarily not availabe. Try to refresh the page.");
+					//		$(".grafico_centrale").append(scritta);
+					//	} 
 						
 					}
 				});

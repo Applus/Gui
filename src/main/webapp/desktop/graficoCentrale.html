@@ -73,6 +73,14 @@
 					async : false,
 					success : function(data) {
 						console.log("query yesterday ajax success");
+						/* for ( var i = 0; i < count; i++) {
+							var time = moment(data.measures[i].time);
+							var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+							var obj = new Array();
+							obj[0]=date;
+							obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+							yesterday_values[i] = obj; 
+						} */
 						yesterday_values = parse_simple_data_tmp(data, 1000);
 					},
 					error : function(xhr, ajaxOptions, thrownErrorxhr) {
@@ -84,7 +92,7 @@
 					},
 					complete : function(qXHR, textStatus) {
 						
-						if(yesterday_values.length>0){
+					
 							chart1 = new Highcharts.Chart({
 								chart : {
 									renderTo : 'chart',
@@ -102,6 +110,10 @@
 								xAxis : {
 									categories : [ '09-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18', '18-19',
 											'19-20', '20-21' ]
+									/* type: 'datetime',
+					                title: {
+					                    text: null
+					                } */
 								},
 								yAxis : {
 									title : {
@@ -145,8 +157,19 @@
 										success : function(data) {
 											//aggiorno hour solo se la chiamata ajax è andata a buon fine
 											hour = current_hour;
-											today_values = parse_simple_data_tmp(data, 1000);
 											
+											
+											today_values = parse_simple_data_tmp(data, 1000);
+											/* var count = data.measures.length;
+											for ( var i = 0; i < count; i++) {
+												var time = moment(data.measures[i].time);
+												var date = Date.UTC(time.year(), time.month(), time.date(), time.hour(), time.minute(), 0);
+												var obj = new Array();
+												obj[0]=date;
+												obj[1]=roundtwo(parseFloat(data.measures[i].value)); 
+												
+												today_values[i] = obj;
+											} */
 											
 										},
 										error : function(xhr, ajaxOptions, thrownErrorxhr) {
@@ -223,11 +246,7 @@
 								}, 10 * 60 * 1000);
 
 							});
-						}
-						else {
-							var scritta = $("<p class='errorMessage'>").text("Data are temporarily not available. Try to refresh the page");
-							$(".grafico_centrale").append(scritta);
-						}
+						
 						
 					}
 				});

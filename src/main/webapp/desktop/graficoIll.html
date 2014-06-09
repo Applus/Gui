@@ -70,6 +70,8 @@ $(document).ready(function () {
 		var query_ill = week_query_mir + drain +"?start=" + yesterday + "&timeAggregation=HOUR";
 	}
 	
+	
+	
 	//chiamata ajax per la query
 	$.ajax({
 		url : query_ill,
@@ -89,6 +91,8 @@ $(document).ready(function () {
 				
 				ill_values[i] = obj;
 			}
+			
+			
 		},
 		error : function(xhr, ajaxOptions, thrownErrorxhr){
 			console.log(xhr.status);

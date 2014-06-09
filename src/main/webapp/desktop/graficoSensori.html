@@ -390,6 +390,8 @@ function doGraph(lastanno, lastmese, lastgiorno, anno, mese, giorno, interval){
 		    	type: 'spline',
 		        name: 'Total',
 		        data: time_value_array_tot,
+		        pointStart: Date.UTC(lastanno, lastmese-1, lastgiorno),
+	            pointInterval: point_interval, 
 		         dataGrouping: {
 		    	   enabled: false
 		        } 

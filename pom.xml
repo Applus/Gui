@@ -26,16 +26,6 @@
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>tomcat-maven-plugin</artifactId>
-				<configuration>
-					<path>/Alcotra</path>
-					<username>tomcat</username>
-					<password>tomcat</password>
-					<url>http://10.10.10.196:8080/manager/text</url>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
