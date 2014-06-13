@@ -258,7 +258,7 @@ function parse_time_value_data(data, scale){
 	//get the current day
 	var now = moment().valueOf();
 	now = fromTimestampToUTC(now);
-	for(var i=0; i<num_axes-1; i++){
+	for(var i=0; i<num_axes; i++){
 		var obj = new Array();
 		//salto l'ultimo valor eperchè è sempre null
 		var time = convertFromStringToUTCDate(data.measures[i].time);
